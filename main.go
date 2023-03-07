@@ -5,5 +5,5 @@ import(
 )
 
 func main() {
-	fmt.Println("Initial Push")
+	fmt.Println("ini branch rizky")
 }
