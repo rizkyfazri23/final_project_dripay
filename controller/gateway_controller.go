@@ -8,6 +8,7 @@
 	 "github.com/rizkyfazri23/dripay/model/app_error"
 	 "github.com/rizkyfazri23/dripay/model/entity"
 	 "github.com/rizkyfazri23/dripay/usecase"
+	 "github.com/rizkyfazri23/dripay/middlewares"
 	 "github.com/gin-gonic/gin"
  )
  
@@ -22,13 +23,14 @@
 		 router:  r,
 		 usecase: u,
 	 }
-	//  r.Group("/gateway")
-	 // define routes
-	 r.GET("/gateway", controller.GetAll)
-	 r.GET("/gateway/:id", controller.GetOne)
-	 r.POST("/gateway", controller.Add)
-	 r.PUT("/gateway/:id", controller.Edit)
-	 r.DELETE("/gateway/:id", controller.Remove)
+	 gwGroup := r.Group("/gateway")
+	 gwGroup.Use(middlewares.JwtAuthMiddleware())
+
+	 gwGroup.GET("/", controller.GetAll)
+	 gwGroup.GET("/:id", controller.GetOne)
+	 gwGroup.POST("/", controller.Add)
+	 gwGroup.PUT("/:id", controller.Edit)
+	 gwGroup.DELETE("/:id", controller.Remove)
  
 	 return &controller
  }
