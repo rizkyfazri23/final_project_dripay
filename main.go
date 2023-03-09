@@ -1,9 +1,10 @@
 package main
 
-import(
-	"fmt"
+import (
+	_ "github.com/lib/pq"
+	"github.com/rizkyfazri23/dripay/delivery"
 )
 
 func main() {
-	fmt.Println("Initial Push")
+	delivery.Server().Run()
 }
