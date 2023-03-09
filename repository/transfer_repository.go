@@ -7,32 +7,18 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"github.com/rizkyfazri23/dripay/model"
+	"github.com/rizkyfazri23/dripay/model/entity"
 )
 
 type TransferRepository interface {
-	FindTransferHistory(id int) ([]*model.Transfer, error)
-	CreateTransfer(newTransfer *model.TransferInfo) (*model.Transfer, error)
+	CreateTransfer(newTransfer *entity.TransferInfo) (*entity.Transfer, error)
 }
 
 type transferRepository struct {
 	db *sqlx.DB
 }
 
-func (r *transferRepository) FindTransferHistory(id int) ([]*model.Transfer, error) {
-	var transferList []*model.Transfer
-
-	query := "SELECT * FROM t_transfer WHERE sender_id = $1"
-
-	err := r.db.Select(&transferList, query, id)
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
-	return transferList, nil
-}
-
-func (r *transferRepository) CreateTransfer(newTransfer *model.TransferInfo) (*model.Transfer, error) {
+func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (*entity.Transfer, error) {
 	log.Println(newTransfer)
 	tx := r.db.MustBegin()
 
@@ -84,7 +70,7 @@ func (r *transferRepository) CreateTransfer(newTransfer *model.TransferInfo) (*m
 		log.Println("Get ReceiptId")
 	}
 
-	ReceiptId, err := strconv.Atoi(receiptId)
+	ReceiptId, _ := strconv.Atoi(receiptId)
 
 	// Terima Uang
 	_, err = tx.NamedExec("UPDATE m_member SET wallet_amount = wallet_amount + :Transfer_Amount WHERE member_id = :receipt_id", map[string]interface{}{
@@ -107,7 +93,7 @@ func (r *transferRepository) CreateTransfer(newTransfer *model.TransferInfo) (*m
 	} else {
 		log.Println("Get ReceiptId")
 	}
-	GatewayId, err := strconv.Atoi(gatewayId)
+	GatewayId, _ := strconv.Atoi(gatewayId)
 
 	TransCode := rand.Intn(100000000)
 	query = "INSERT INTO t_transfer (transfer_code, sender_id, receipt_id, transfer_amount, transfer_gateway_id, description) VALUES ($1, $2, $3, $4, $5, $6)"
@@ -137,7 +123,7 @@ func (r *transferRepository) CreateTransfer(newTransfer *model.TransferInfo) (*m
 		log.Println("Commited")
 	}
 
-	return &model.Transfer{
+	return &entity.Transfer{
 		Sender_Id:           senderId,
 		Transfer_Amount:     newTransfer.TransferAmount,
 		Transfer_Gateway_Id: 2,

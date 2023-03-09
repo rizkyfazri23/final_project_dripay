@@ -64,7 +64,7 @@ func (d *depositRepository) MakeDeposit(newDeposit *entity.DepositRequest) (*ent
 	}
 
 	query = `INSERT INTO t_transaction_log (member_id, type_id, amount, status, transaction_code) VALUES ($1, $2, $3, $4, $5)`
-	row = tx.QueryRow(query, memberID, transactionID, newDeposit.Deposit_Amount, "SUCCESS", transactionCode)
+	_ = tx.QueryRow(query, memberID, transactionID, newDeposit.Deposit_Amount, 1, transactionCode)
 
 	if err != nil {
 		tx.Rollback()
@@ -91,7 +91,7 @@ func (d *depositRepository) MakeDeposit(newDeposit *entity.DepositRequest) (*ent
 		Deposit_Amount:     newDeposit.Deposit_Amount,
 		Deposit_Gateway_Id: depositGatewayID,
 		Description:        newDeposit.Description,
-		Date_time:          dateTime,
+		Date_Time:          dateTime,
 	}
 	return deposit, nil
 }

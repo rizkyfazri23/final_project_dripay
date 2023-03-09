@@ -9,7 +9,7 @@ type Deposit struct {
 	Deposit_Amount     float32   `json:"deposit_amount"`
 	Deposit_Gateway_Id int       `json:"deposit_gateway_id"`
 	Description        string    `json:"description"`
-	Date_time          time.Time `json:"date_time"`
+	Date_Time          time.Time `json:"date_time"`
 }
 
 type DepositRequest struct {
