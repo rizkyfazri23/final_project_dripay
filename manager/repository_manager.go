@@ -1,8 +1,3 @@
-/*
- * Author : Ismail Ash Shidiq (https://eulbyvan.netlify.app)
- * Created on : Sat Mar 04 2023 9:48:51 PM
- * Copyright : Ismail Ash Shidiq © 2023. All rights reserved
- */
 
  package manager
 
@@ -10,6 +5,7 @@
  
  type RepoManager interface {
 	 GatewayRepo() repository.GatewayRepo
+	 MemberRepo() repository.MemberRepo
  }
  
  type repositoryManager struct {
@@ -19,6 +15,10 @@
  func (r *repositoryManager) GatewayRepo() repository.GatewayRepo {
 	 return repository.NewGatewayRepository(r.infraManager.DbConn())
  }
+
+ func (r *repositoryManager) MemberRepo() repository.MemberRepo {
+	return repository.NewMemberRepository(r.infraManager.DbConn())
+}
  
  func NewRepoManager(manager InfraManager) RepoManager {
 	 return &repositoryManager{

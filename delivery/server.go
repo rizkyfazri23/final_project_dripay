@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/gin-gonic/gin"
 	"github.com/rizkyfazri23/dripay/config"
 	"github.com/rizkyfazri23/dripay/controller"
 	"github.com/rizkyfazri23/dripay/manager"
-	"github.com/gin-gonic/gin"
 )
 
 type AppServer struct {
@@ -19,10 +19,15 @@ type AppServer struct {
 func (p *AppServer) v1() {
 	v1Routes := p.engine.Group("/v1")
 	p.gatewayController(v1Routes)
+	p.memberController(v1Routes)
 }
 
 func (p *AppServer) gatewayController(rg *gin.RouterGroup) {
 	controller.NewGatewayController(rg, p.usecaseManager.GatewayUsecase())
+}
+
+func (p *AppServer) memberController(rg *gin.RouterGroup) {
+	controller.NewMemberController(rg, p.usecaseManager.MemberUsecase())
 }
 
 func (p *AppServer) Run() {
