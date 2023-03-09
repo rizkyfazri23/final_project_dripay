@@ -1,13 +1,13 @@
 package usecase
 
 import (
-	"github.com/rizkyfazri23/dripay/model"
+	"github.com/rizkyfazri23/dripay/model/entity"
 	"github.com/rizkyfazri23/dripay/repository"
 )
 
 type TransferUsecase interface {
-	TransferHistory(id int) ([]*model.Transfer, error)
-	TransferBalance(newTransfer *model.TransferInfo) (*model.Transfer, error)
+	TransferHistory(id int) ([]*entity.Transfer, error)
+	TransferBalance(newTransfer *entity.TransferInfo) (*entity.Transfer, error)
 }
 
 type transferUsecase struct {
@@ -20,9 +20,9 @@ func NewTransferUsecase(transRepo repository.TransferRepository) TransferUsecase
 	}
 }
 
-func (u *transferUsecase) TransferHistory(id int) ([]*model.Transfer, error) {
+func (u *transferUsecase) TransferHistory(id int) ([]*entity.Transfer, error) {
 	return u.transferRepo.FindTransferHistory(id)
 }
-func (u *transferUsecase) TransferBalance(newTransfer *model.TransferInfo) (*model.Transfer, error) {
+func (u *transferUsecase) TransferBalance(newTransfer *entity.TransferInfo) (*entity.Transfer, error) {
 	return u.transferRepo.CreateTransfer(newTransfer)
 }

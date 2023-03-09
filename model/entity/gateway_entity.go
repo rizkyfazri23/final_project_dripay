@@ -1,4 +1,4 @@
-package model
+package entity
 
 type Gateway struct {
 	Gateway_Id   int    `json:"gateway_id"`

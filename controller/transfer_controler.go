@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rizkyfazri23/dripay/model"
+	"github.com/rizkyfazri23/dripay/model/entity"
 	"github.com/rizkyfazri23/dripay/usecase"
 )
 
@@ -40,7 +40,7 @@ func (c *TransferController) GetTransfer(ctx *gin.Context) {
 }
 
 func (c *TransferController) AddTransfer(ctx *gin.Context) {
-	var newTransfer *model.TransferInfo
+	var newTransfer *entity.TransferInfo
 
 	if err := ctx.BindJSON(&newTransfer); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{

@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rizkyfazri23/dripay/model"
+	"github.com/rizkyfazri23/dripay/model/entity"
 	"github.com/rizkyfazri23/dripay/usecase"
 )
 
@@ -24,7 +24,7 @@ func NewGatewayController(r *gin.RouterGroup, u usecase.GatewayUsecase) *Gateway
 }
 
 func (c *GatewayController) CreateGateway(w *gin.Context) {
-	var gateway model.Gateway
+	var gateway entity.Gateway
 	err := w.BindJSON(&gateway)
 	if err != nil {
 		w.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
@@ -49,7 +49,7 @@ func (c *GatewayController) ReadGateway(w *gin.Context) {
 }
 
 func (c *GatewayController) UpdateGateway(w *gin.Context) {
-	var gateway model.Gateway
+	var gateway entity.Gateway
 	err := w.BindJSON(&gateway)
 	if err != nil {
 		w.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})

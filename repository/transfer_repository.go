@@ -7,20 +7,20 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"github.com/rizkyfazri23/dripay/model"
+	"github.com/rizkyfazri23/dripay/model/entity"
 )
 
 type TransferRepository interface {
-	FindTransferHistory(id int) ([]*model.Transfer, error)
-	CreateTransfer(newTransfer *model.TransferInfo) (*model.Transfer, error)
+	FindTransferHistory(id int) ([]*entity.Transfer, error)
+	CreateTransfer(newTransfer *entity.TransferInfo) (*entity.Transfer, error)
 }
 
 type transferRepository struct {
 	db *sqlx.DB
 }
 
-func (r *transferRepository) FindTransferHistory(id int) ([]*model.Transfer, error) {
-	var transferList []*model.Transfer
+func (r *transferRepository) FindTransferHistory(id int) ([]*entity.Transfer, error) {
+	var transferList []*entity.Transfer
 
 	query := "SELECT * FROM t_transfer WHERE sender_id = $1"
 
@@ -32,7 +32,7 @@ func (r *transferRepository) FindTransferHistory(id int) ([]*model.Transfer, err
 	return transferList, nil
 }
 
-func (r *transferRepository) CreateTransfer(newTransfer *model.TransferInfo) (*model.Transfer, error) {
+func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (*entity.Transfer, error) {
 	log.Println(newTransfer)
 	tx := r.db.MustBegin()
 
@@ -120,8 +120,16 @@ func (r *transferRepository) CreateTransfer(newTransfer *model.TransferInfo) (*m
 		log.Println("Transfer Created")
 	}
 
+	var typeId int
+
+	err = tx.Get(&typeId, `SELECT type_id FROM m_transaction_type WHERE type_name = $1`, "Transfer")
+	if err != nil {
+		tx.Rollback()
+		log.Println(err)
+	}
+
 	query = "INSERT INTO t_transaction_log (member_id, type_id, amount, transaction_code)  VALUES ($1, $2, $3, $4)"
-	_, err = r.db.Exec(query, senderId, 1, newTransfer.TransferAmount, TransCode)
+	_, err = r.db.Exec(query, senderId, typeId, newTransfer.TransferAmount, TransCode)
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()
@@ -137,10 +145,10 @@ func (r *transferRepository) CreateTransfer(newTransfer *model.TransferInfo) (*m
 		log.Println("Commited")
 	}
 
-	return &model.Transfer{
+	return &entity.Transfer{
 		Sender_Id:           senderId,
 		Transfer_Amount:     newTransfer.TransferAmount,
-		Transfer_Gateway_Id: 2,
+		Transfer_Gateway_Id: GatewayId,
 		Receipt_Id:          ReceiptId,
 		Description:         newTransfer.Description,
 	}, nil
