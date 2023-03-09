@@ -1,9 +1,11 @@
 package main
 
-import(
-	"fmt"
+import (
+	"github.com/rizkyfazri23/dripay/delivery"
+	_ "github.com/lib/pq"
 )
 
 func main() {
-	fmt.Println("ini branch rizky")
+	// Run the server
+	delivery.Server().Run()
 }
