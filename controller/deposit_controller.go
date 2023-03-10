@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rizkyfazri23/dripay/middlewares"
 	"github.com/rizkyfazri23/dripay/model/app_error"
 	"github.com/rizkyfazri23/dripay/model/entity"
 	"github.com/rizkyfazri23/dripay/usecase"
@@ -22,7 +23,10 @@ func NewDepositController(r *gin.RouterGroup, u usecase.DepositUsecase) *Deposit
 		usecase: u,
 	}
 
-	r.POST("/deposit", controller.Add)
+	dGroup := r.Group("/deposit")
+	dGroup.Use(middlewares.JwtAuthMiddleware())
+
+	dGroup.POST("/", controller.Add)
 
 	return &controller
 }

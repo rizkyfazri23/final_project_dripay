@@ -6,7 +6,7 @@ import (
 )
 
 type DepositUsecase interface {
-	Add(newDeposit *entity.DepositRequest) (*entity.Deposit, error)
+	Add(newDeposit *entity.DepositRequest) (entity.Deposit, error)
 }
 
 type depositUsecase struct {
@@ -19,6 +19,6 @@ func NewDepositUsecase(depositRepo repository.DepositRepository) DepositUsecase 
 	}
 }
 
-func (u *depositUsecase) Add(newDeposit *entity.DepositRequest) (*entity.Deposit, error) {
+func (u *depositUsecase) Add(newDeposit *entity.DepositRequest) (entity.Deposit, error) {
 	return u.depositRepo.MakeDeposit(newDeposit)
 }

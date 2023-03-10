@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rizkyfazri23/dripay/middlewares"
 	"github.com/rizkyfazri23/dripay/model/app_error"
 	"github.com/rizkyfazri23/dripay/usecase"
 )
@@ -20,7 +21,13 @@ func NewHistoryController(r *gin.RouterGroup, u usecase.HistoryUsecase) *History
 		usecase: u,
 	}
 
-	r.GET("/history", controller.GetAll)
+	hGroup := r.Group("/history")
+	hGroup.Use(middlewares.JwtAuthMiddleware())
+
+	hGroup.GET("/", controller.GetAll)
+	hGroup.GET("/payment", controller.GetAllPayment)
+	hGroup.GET("/deposit", controller.GetAllDeposit)
+	hGroup.GET("/transfer", controller.GetAllTransfer)
 
 	return &controller
 }
@@ -32,7 +39,7 @@ func (c *HistoryController) GetAll(ctx *gin.Context) {
 		return
 	}
 
-	c.Success(ctx, http.StatusOK, "", "Successfully retrieved all gateway data", res)
+	c.Success(ctx, http.StatusOK, "", "Successfully retrieved all history data", res)
 }
 
 func (c *HistoryController) GetAllPayment(ctx *gin.Context) {
@@ -42,7 +49,7 @@ func (c *HistoryController) GetAllPayment(ctx *gin.Context) {
 		return
 	}
 
-	c.Success(ctx, http.StatusOK, "", "Successfully retrieved all gateway data", res)
+	c.Success(ctx, http.StatusOK, "", "Successfully retrieved all payment data", res)
 }
 
 func (c *HistoryController) GetAllTransfer(ctx *gin.Context) {
@@ -52,7 +59,7 @@ func (c *HistoryController) GetAllTransfer(ctx *gin.Context) {
 		return
 	}
 
-	c.Success(ctx, http.StatusOK, "", "Successfully retrieved all gateway data", res)
+	c.Success(ctx, http.StatusOK, "", "Successfully retrieved all transfer data", res)
 }
 
 func (c *HistoryController) GetAllDeposit(ctx *gin.Context) {
@@ -62,5 +69,5 @@ func (c *HistoryController) GetAllDeposit(ctx *gin.Context) {
 		return
 	}
 
-	c.Success(ctx, http.StatusOK, "", "Successfully retrieved all gateway data", res)
+	c.Success(ctx, http.StatusOK, "", "Successfully retrieved all deposit data", res)
 }

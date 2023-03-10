@@ -1,24 +1,24 @@
 package repository
 
 import (
+	"database/sql"
 	"log"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/rizkyfazri23/dripay/model/entity"
 )
 
 type HistoryRepository interface {
-	AllHistory() ([]*entity.History, error)
-	PaymentHistory() ([]*entity.History, error)
-	TransferHistory() ([]*entity.History, error)
-	DepositHistory() ([]*entity.History, error)
+	AllHistory() ([]entity.History, error)
+	PaymentHistory() ([]entity.History, error)
+	TransferHistory() ([]entity.History, error)
+	DepositHistory() ([]entity.History, error)
 }
 
 type historyRepository struct {
-	db *sqlx.DB
+	db *sql.DB
 }
 
-func (r *historyRepository) AllHistory() ([]*entity.History, error) {
+func (r *historyRepository) AllHistory() ([]entity.History, error) {
 
 	rows, err := r.db.Query(`SELECT 
 							t.transaction_log_id as Id,
@@ -39,10 +39,10 @@ func (r *historyRepository) AllHistory() ([]*entity.History, error) {
 	}
 	defer rows.Close()
 
-	var histories []*entity.History
+	var histories []entity.History
 
 	for rows.Next() {
-		var h *entity.History
+		var h entity.History
 		err := rows.Scan(&h.Id, &h.Member_Username, &h.Transaction_Type, &h.Amount, &h.Date_Time, &h.Status, &h.Transaction_Code)
 		if err != nil {
 			log.Fatal(err)
@@ -58,7 +58,7 @@ func (r *historyRepository) AllHistory() ([]*entity.History, error) {
 	return histories, nil
 }
 
-func (r *historyRepository) PaymentHistory() ([]*entity.History, error) {
+func (r *historyRepository) PaymentHistory() ([]entity.History, error) {
 
 	rows, err := r.db.Query(`SELECT 
 							t.transaction_log_id as Id,
@@ -80,10 +80,10 @@ func (r *historyRepository) PaymentHistory() ([]*entity.History, error) {
 	}
 	defer rows.Close()
 
-	var histories []*entity.History
+	var histories []entity.History
 
 	for rows.Next() {
-		var h *entity.History
+		var h entity.History
 		err := rows.Scan(&h.Id, &h.Member_Username, &h.Transaction_Type, &h.Amount, &h.Date_Time, &h.Status, &h.Transaction_Code)
 		if err != nil {
 			log.Fatal(err)
@@ -99,7 +99,7 @@ func (r *historyRepository) PaymentHistory() ([]*entity.History, error) {
 	return histories, nil
 }
 
-func (r *historyRepository) TransferHistory() ([]*entity.History, error) {
+func (r *historyRepository) TransferHistory() ([]entity.History, error) {
 
 	rows, err := r.db.Query(`SELECT 
 							t.transaction_log_id as Id,
@@ -121,10 +121,10 @@ func (r *historyRepository) TransferHistory() ([]*entity.History, error) {
 	}
 	defer rows.Close()
 
-	var histories []*entity.History
+	var histories []entity.History
 
 	for rows.Next() {
-		var h *entity.History
+		var h entity.History
 		err := rows.Scan(&h.Id, &h.Member_Username, &h.Transaction_Type, &h.Amount, &h.Date_Time, &h.Status, &h.Transaction_Code)
 		if err != nil {
 			log.Fatal(err)
@@ -140,7 +140,7 @@ func (r *historyRepository) TransferHistory() ([]*entity.History, error) {
 	return histories, nil
 }
 
-func (r *historyRepository) DepositHistory() ([]*entity.History, error) {
+func (r *historyRepository) DepositHistory() ([]entity.History, error) {
 
 	rows, err := r.db.Query(`SELECT 
 							t.transaction_log_id as Id,
@@ -162,10 +162,10 @@ func (r *historyRepository) DepositHistory() ([]*entity.History, error) {
 	}
 	defer rows.Close()
 
-	var histories []*entity.History
+	var histories []entity.History
 
 	for rows.Next() {
-		var h *entity.History
+		var h entity.History
 		err := rows.Scan(&h.Id, &h.Member_Username, &h.Transaction_Type, &h.Amount, &h.Date_Time, &h.Status, &h.Transaction_Code)
 		if err != nil {
 			log.Fatal(err)
@@ -181,7 +181,7 @@ func (r *historyRepository) DepositHistory() ([]*entity.History, error) {
 	return histories, nil
 }
 
-func NewHistoryRepository(db *sqlx.DB) HistoryRepository {
+func NewHistoryRepository(db *sql.DB) HistoryRepository {
 	repo := new(historyRepository)
 	repo.db = db
 	return repo

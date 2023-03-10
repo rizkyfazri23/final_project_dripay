@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rizkyfazri23/dripay/middlewares"
 	"github.com/rizkyfazri23/dripay/model/app_error"
 	"github.com/rizkyfazri23/dripay/model/entity"
 	"github.com/rizkyfazri23/dripay/usecase"
@@ -22,7 +23,10 @@ func NewTransferController(r *gin.RouterGroup, u usecase.TransferUsecase) *Trans
 		usecase: u,
 	}
 
-	r.GET("/transfer", controller.AddTransfer)
+	trGroup := r.Group("/transfer")
+	trGroup.Use(middlewares.JwtAuthMiddleware())
+
+	trGroup.POST("/", controller.AddTransfer)
 
 	return &controller
 }
@@ -31,13 +35,21 @@ func (c *TransferController) AddTransfer(ctx *gin.Context) {
 	var newTransfer *entity.TransferInfo
 
 	if err := ctx.BindJSON(&newTransfer); err != nil {
-		c.Failed(ctx, http.StatusInternalServerError, "", app_error.UnknownError(""))
-	}
-	res, err := c.usecase.TransferBalance(newTransfer)
-	if err != nil {
-		c.Failed(ctx, http.StatusInternalServerError, "", fmt.Errorf("failed to add deposit"))
+		c.Failed(ctx, http.StatusBadRequest, "", app_error.UnknownError(""))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, res)
+	if newTransfer.SenderUsername == "" {
+		c.Failed(ctx, http.StatusBadRequest, "X01", app_error.InvalidError("one or more required fields are missing"))
+		return
+	}
+
+	res, err := c.usecase.TransferBalance(newTransfer)
+
+	if err != nil {
+		c.Failed(ctx, http.StatusInternalServerError, "", fmt.Errorf("failed to transfer fund"))
+		return
+	}
+
+	c.Success(ctx, http.StatusCreated, "01", "Successfully transfer fund", res)
 }
