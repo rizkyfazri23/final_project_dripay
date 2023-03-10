@@ -8,7 +8,7 @@ import (
 )
 
 type DepositRepository interface {
-	MakeDeposit(newDeposit *entity.DepositRequest) (entity.Deposit, error)
+	MakeDeposit(newDeposit *entity.DepositRequest, member_id int) (entity.Deposit, error)
 }
 
 type depositRepository struct {
@@ -115,7 +115,7 @@ type depositRepository struct {
 // 	return *deposit, nil
 // }
 
-func (d *depositRepository) MakeDeposit(newDeposit *entity.DepositRequest) (entity.Deposit, error) {
+func (d *depositRepository) MakeDeposit(newDeposit *entity.DepositRequest, member_id int) (entity.Deposit, error) {
 	tx, err := d.db.Begin()
 	if err != nil {
 		return entity.Deposit{}, err
@@ -134,14 +134,10 @@ func (d *depositRepository) MakeDeposit(newDeposit *entity.DepositRequest) (enti
 		}
 	}()
 
-	var memberID, depositGatewayID, transactionID, depositID int
+	var  depositGatewayID, transactionID, depositID int
 	var transactionCode string
 	var dateTime time.Time
 
-	err = tx.QueryRow(`SELECT member_id FROM m_member WHERE username = $1`, newDeposit.Member_Username).Scan(&memberID)
-	if err != nil {
-		return entity.Deposit{}, err
-	}
 
 	err = tx.QueryRow(`SELECT gateway_id FROM m_gateway WHERE gateway_name = $1`, newDeposit.Deposit_Gateway).Scan(&depositGatewayID)
 	if err != nil {
@@ -149,7 +145,7 @@ func (d *depositRepository) MakeDeposit(newDeposit *entity.DepositRequest) (enti
 	}
 
 	query := `INSERT INTO t_deposit (member_id, deposit_amount, deposit_gateway_id, description) VALUES ($1, $2, $3, $4) RETURNING deposit_id, deposit_code, date_time`
-	err = tx.QueryRow(query, memberID, newDeposit.Deposit_Amount, depositGatewayID, newDeposit.Description).Scan(&depositID, &transactionCode, &dateTime)
+	err = tx.QueryRow(query, member_id, newDeposit.Deposit_Amount, depositGatewayID, newDeposit.Description).Scan(&depositID, &transactionCode, &dateTime)
 	if err != nil {
 		return entity.Deposit{}, err
 	}
@@ -166,7 +162,7 @@ func (d *depositRepository) MakeDeposit(newDeposit *entity.DepositRequest) (enti
 	}
 
 	query = `INSERT INTO t_transaction_log (member_id, type_id, amount, status, transaction_code) VALUES ($1, $2, $3, $4, $5)`
-	_, err = tx.Exec(query, memberID, transactionID, newDeposit.Deposit_Amount, 1, transactionCode)
+	_, err = tx.Exec(query, member_id, transactionID, newDeposit.Deposit_Amount, 1, transactionCode)
 	if err != nil {
 		return entity.Deposit{}, err
 	}
@@ -174,7 +170,7 @@ func (d *depositRepository) MakeDeposit(newDeposit *entity.DepositRequest) (enti
 	deposit := &entity.Deposit{
 		Id:                 depositID,
 		Deposit_Code:       transactionCode,
-		Member_Id:          memberID,
+		Member_Id:          member_id,
 		Deposit_Amount:     newDeposit.Deposit_Amount,
 		Deposit_Gateway_Id: depositGatewayID,
 		Description:        newDeposit.Description,
