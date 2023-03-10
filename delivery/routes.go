@@ -36,7 +36,6 @@ func (p *AppServer) gatewayController(rg *gin.RouterGroup) {
 
 func (p *AppServer) transferController(rg *gin.RouterGroup) {
 	transferController := controller.NewTransferController(rg, p.usecaseManager.TransferUsecase())
-	rg.GET("/:id", transferController.GetTransfer)
 	rg.POST("/", transferController.AddTransfer)
 }
 

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"log"
 	"math/rand"
 	"strconv"
@@ -11,25 +12,11 @@ import (
 )
 
 type TransferRepository interface {
-	FindTransferHistory(id int) ([]*entity.Transfer, error)
 	CreateTransfer(newTransfer *entity.TransferInfo) (*entity.Transfer, error)
 }
 
 type transferRepository struct {
 	db *sqlx.DB
-}
-
-func (r *transferRepository) FindTransferHistory(id int) ([]*entity.Transfer, error) {
-	var transferList []*entity.Transfer
-
-	query := "SELECT * FROM t_transfer WHERE sender_id = $1"
-
-	err := r.db.Select(&transferList, query, id)
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
-	return transferList, nil
 }
 
 func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (*entity.Transfer, error) {
@@ -40,8 +27,9 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (*
 	query := "SELECT member_id FROM m_member WHERE username = $1"
 	err := tx.Get(&senderId, query, newTransfer.SenderUsername)
 	if err != nil {
+		log.Println(err)
 		tx.Rollback()
-		log.Fatalln(err)
+		return &entity.Transfer{}, err
 	} else {
 		log.Println("Get senderId")
 	}
@@ -50,14 +38,18 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (*
 	query = "SELECT wallet_amount FROM m_member WHERE member_id = $1"
 	err = tx.Get(&senderBalance, query, senderId)
 	if err != nil {
+		log.Println(err)
 		tx.Rollback()
-		log.Fatalln(err)
+		return &entity.Transfer{}, err
 	} else {
 		log.Println("Get SenderBalance")
 	}
+
 	if senderBalance < newTransfer.TransferAmount {
-		log.Println("Insufficient funds")
+		err := errors.New("Insufficient funds")
+		log.Println(err)
 		tx.Rollback()
+		return &entity.Transfer{}, err
 	} else {
 		log.Println("Duit cukup")
 	}
@@ -70,6 +62,7 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (*
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()
+		return &entity.Transfer{}, err
 	} else {
 		log.Println("funds transferred")
 	}
@@ -78,8 +71,10 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (*
 	query = "SELECT member_id FROM m_member WHERE username = $1"
 	err = tx.Get(&receiptId, query, newTransfer.ReceiptUsername)
 	if err != nil {
+		log.Println(err)
 		tx.Rollback()
-		log.Fatalln(err)
+		return &entity.Transfer{}, err
+
 	} else {
 		log.Println("Get ReceiptId")
 	}
@@ -94,6 +89,7 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (*
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()
+		return &entity.Transfer{}, err
 	} else {
 		log.Println("funds received")
 	}
@@ -102,8 +98,9 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (*
 	query = "SELECT gateway_id FROM m_gateway WHERE gateway_name = $1"
 	err = tx.Get(&gatewayId, query, newTransfer.PaymentGateway)
 	if err != nil {
+		log.Println(err)
 		tx.Rollback()
-		log.Fatalln(err)
+		return &entity.Transfer{}, err
 	} else {
 		log.Println("Get ReceiptId")
 	}
@@ -115,7 +112,7 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (*
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()
-		return nil, err
+		return &entity.Transfer{}, err
 	} else {
 		log.Println("Transfer Created")
 	}
@@ -124,8 +121,9 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (*
 
 	err = tx.Get(&typeId, `SELECT type_id FROM m_transaction_type WHERE type_name = $1`, "Transfer")
 	if err != nil {
-		tx.Rollback()
 		log.Println(err)
+		tx.Rollback()
+		return &entity.Transfer{}, err
 	}
 
 	query = "INSERT INTO t_transaction_log (member_id, type_id, amount, transaction_code)  VALUES ($1, $2, $3, $4)"
@@ -133,6 +131,7 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (*
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()
+		return &entity.Transfer{}, err
 	} else {
 		log.Println("Transaction Log Created")
 	}
@@ -141,6 +140,7 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (*
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()
+		return &entity.Transfer{}, err
 	} else {
 		log.Println("Commited")
 	}

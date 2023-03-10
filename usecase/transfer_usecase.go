@@ -6,7 +6,6 @@ import (
 )
 
 type TransferUsecase interface {
-	TransferHistory(id int) ([]*entity.Transfer, error)
 	TransferBalance(newTransfer *entity.TransferInfo) (*entity.Transfer, error)
 }
 
@@ -20,9 +19,6 @@ func NewTransferUsecase(transRepo repository.TransferRepository) TransferUsecase
 	}
 }
 
-func (u *transferUsecase) TransferHistory(id int) ([]*entity.Transfer, error) {
-	return u.transferRepo.FindTransferHistory(id)
-}
 func (u *transferUsecase) TransferBalance(newTransfer *entity.TransferInfo) (*entity.Transfer, error) {
 	return u.transferRepo.CreateTransfer(newTransfer)
 }
