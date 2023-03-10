@@ -34,9 +34,9 @@ func (r *memberRepo) LoginCheck(username string, password string) (string, error
 
 	u := entity.MemberLogin{}
 
-	query := "SELECT username, password FROM m_member WHERE username = $1"
+	query := "SELECT member_id, username, password FROM m_member WHERE username = $1"
 	row := r.db.QueryRow(query, username)
-	err = row.Scan(&u.Username, &u.Password)
+	err = row.Scan(&u.Member_Id  ,&u.Username, &u.Password)
 
 	if err != nil {
 		return "", err
@@ -47,7 +47,7 @@ func (r *memberRepo) LoginCheck(username string, password string) (string, error
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
 		return "", err
 	}
-
+	
 	token, err := utils.GenerateToken(u.Member_Id)
 
 	if err != nil {
@@ -56,6 +56,7 @@ func (r *memberRepo) LoginCheck(username string, password string) (string, error
 
 	return token, nil
 }
+
 
 func (r *memberRepo) FindAll() ([]entity.Member, error) {
 	var members []entity.Member

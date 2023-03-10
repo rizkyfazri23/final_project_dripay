@@ -10,6 +10,7 @@ import (
 	"github.com/rizkyfazri23/dripay/model/app_error"
 	"github.com/rizkyfazri23/dripay/model/entity"
 	"github.com/rizkyfazri23/dripay/usecase"
+	"github.com/rizkyfazri23/dripay/utils"
 )
 
 type MemberController struct {
@@ -29,6 +30,7 @@ func NewMemberController(r *gin.RouterGroup, u usecase.MemberUsecase) *MemberCon
 	mmGroup.GET("/:id", controller.GetOne)
 	mmGroup.PUT("/:id", controller.Edit)
 	mmGroup.DELETE("/:id", controller.Remove)
+	mmGroup.GET("/profil", controller.CurrentMember)
 
 	r.POST("/register", controller.Add)
 	r.POST("/login", controller.Login)
@@ -132,4 +134,25 @@ func (c *MemberController) Login(ctx *gin.Context) {
 	}
 
 	c.Success(ctx, http.StatusOK, "", token, nil)
+}
+
+func (c *MemberController) CurrentMember(ctx *gin.Context) {
+	member_id, err := utils.ExtractTokenID(ctx)
+
+	fmt.Println(member_id)
+	
+	if err != nil {
+		c.Failed(ctx, http.StatusBadRequest, "", app_error.InvalidError(err.Error()))
+		return
+	}
+	
+	u,err := c.usecase.GetOne(int(member_id))
+	
+	if err != nil {
+		c.Failed(ctx, http.StatusBadRequest, "", app_error.InvalidError(err.Error()))
+		return
+	}
+
+	c.Success(ctx, http.StatusOK, "", "sukses ngambil user logn", u)
+
 }
