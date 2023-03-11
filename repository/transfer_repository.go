@@ -146,9 +146,9 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (e
 	} else {
 		log.Println("Get GatewayId")
 	}
-
-	query = "INSERT INTO t_transaction_log (member_id, type_id, amount, transaction_code)  VALUES ($1, $2, $3, $4)"
-	_, err = r.db.Exec(query, senderId, typeId, newTransfer.TransferAmount, TransCode)
+	sendAmount := newTransfer.TransferAmount * -1
+	query = "INSERT INTO t_transaction_log (member_id, type_id, amount, transaction_code, status)  VALUES ($1, $2, $3, $4, $6), ($5, $2, $8, $4, $7)"
+	_, err = r.db.Exec(query, senderId, typeId, sendAmount, TransCode, ReceiptId, 0, 1, newTransfer.TransferAmount)
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()
