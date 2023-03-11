@@ -6,10 +6,10 @@ import (
 )
 
 type HistoryUsecase interface {
-	GetAll() ([]entity.History, error)
-	GetAllPayment() ([]entity.History, error)
-	GetAllTransfer() ([]entity.History, error)
-	GetAllDeposit() ([]entity.History, error)
+	GetAll(memberID int) ([]entity.History, error)
+	GetAllPayment(memberID int) ([]entity.History, error)
+	GetAllTransfer(memberID int) ([]entity.History, error)
+	GetAllDeposit(memberID int) ([]entity.History, error)
 }
 
 type historyUsecase struct {
@@ -22,18 +22,18 @@ func NewHistoryUsecase(historyRepo repository.HistoryRepository) HistoryUsecase 
 	}
 }
 
-func (u *historyUsecase) GetAll() ([]entity.History, error) {
-	return u.historyRepo.AllHistory()
+func (u *historyUsecase) GetAll(memberID int) ([]entity.History, error) {
+	return u.historyRepo.AllHistory(memberID)
 }
 
-func (u *historyUsecase) GetAllPayment() ([]entity.History, error) {
-	return u.historyRepo.PaymentHistory()
+func (u *historyUsecase) GetAllPayment(memberID int) ([]entity.History, error) {
+	return u.historyRepo.PaymentHistory(memberID)
 }
 
-func (u *historyUsecase) GetAllTransfer() ([]entity.History, error) {
-	return u.historyRepo.TransferHistory()
+func (u *historyUsecase) GetAllTransfer(memberID int) ([]entity.History, error) {
+	return u.historyRepo.TransferHistory(memberID)
 }
 
-func (u *historyUsecase) GetAllDeposit() ([]entity.History, error) {
-	return u.historyRepo.TransferHistory()
+func (u *historyUsecase) GetAllDeposit(memberID int) ([]entity.History, error) {
+	return u.historyRepo.TransferHistory(memberID)
 }

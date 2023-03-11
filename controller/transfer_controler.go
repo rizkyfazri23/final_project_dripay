@@ -9,6 +9,7 @@ import (
 	"github.com/rizkyfazri23/dripay/model/app_error"
 	"github.com/rizkyfazri23/dripay/model/entity"
 	"github.com/rizkyfazri23/dripay/usecase"
+	"github.com/rizkyfazri23/dripay/utils"
 )
 
 type TransferController struct {
@@ -33,18 +34,22 @@ func NewTransferController(r *gin.RouterGroup, u usecase.TransferUsecase) *Trans
 
 func (c *TransferController) AddTransfer(ctx *gin.Context) {
 	var newTransfer *entity.TransferInfo
-
+	sender_Id, err := utils.ExtractTokenID(ctx)
 	if err := ctx.BindJSON(&newTransfer); err != nil {
 		c.Failed(ctx, http.StatusBadRequest, "", app_error.UnknownError(""))
 		return
 	}
 
-	if newTransfer.SenderUsername == "" {
+	if newTransfer.ReceiptUsername == "" {
 		c.Failed(ctx, http.StatusBadRequest, "X01", app_error.InvalidError("one or more required fields are missing"))
 		return
 	}
+	if newTransfer.TransferAmount < 1 {
+		c.Failed(ctx, http.StatusBadRequest, "X01", app_error.InvalidError("invalid amount"))
+		return
+	}
 
-	res, err := c.usecase.TransferBalance(newTransfer)
+	res, err := c.usecase.TransferBalance(newTransfer, sender_Id)
 
 	if err != nil {
 		c.Failed(ctx, http.StatusInternalServerError, "", fmt.Errorf("failed to transfer fund"))

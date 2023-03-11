@@ -12,14 +12,14 @@ import (
 )
 
 type TransferRepository interface {
-	CreateTransfer(newTransfer *entity.TransferInfo) (entity.Transfer, error)
+	CreateTransfer(newTransfer *entity.TransferInfo, senderId int) (entity.Transfer, error)
 }
 
 type transferRepository struct {
 	db *sql.DB
 }
 
-func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (entity.Transfer, error) {
+func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo, senderId int) (entity.Transfer, error) {
 	log.Println(newTransfer)
 
 	tx, err := r.db.Begin()
@@ -28,33 +28,27 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (e
 		return entity.Transfer{}, err
 	}
 
-	if newTransfer.SenderUsername == newTransfer.ReceiptUsername {
+	// check penerima
+	var receiptId string
+	query := "SELECT member_id FROM m_member WHERE username = $1"
+	err = tx.QueryRow(query, newTransfer.ReceiptUsername).Scan(&receiptId)
+	if err != nil {
+		tx.Rollback()
+		log.Println(err)
+		return entity.Transfer{}, err
+	} else {
+		log.Println("Get ReceiptId")
+	}
+
+	ReceiptId, _ := strconv.Atoi(receiptId)
+
+	if senderId == ReceiptId {
 		err := errors.New("Can't transfer to yourself")
 		log.Println("Sender and recipient usernames are identical")
 		tx.Rollback()
 		return entity.Transfer{}, err
 	} else {
 		log.Println("Diff username")
-	}
-
-	if newTransfer.TransferAmount < 1 {
-		err := errors.New("What do you want to transfer? hope?")
-		log.Println("Transfer amount invalid")
-		tx.Rollback()
-		return entity.Transfer{}, err
-	} else {
-		log.Println("Transfer amount valid")
-	}
-
-	var senderId int
-	query := "SELECT member_id FROM m_member WHERE username = $1"
-	err = tx.QueryRow(query, newTransfer.SenderUsername).Scan(&senderId)
-	if err != nil {
-		tx.Rollback()
-		log.Println(err)
-		return entity.Transfer{}, err
-	} else {
-		log.Println("Get senderId")
 	}
 
 	var senderBalance float32
@@ -86,19 +80,6 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (e
 	} else {
 		log.Println("funds transferred")
 	}
-
-	var receiptId string
-	query = "SELECT member_id FROM m_member WHERE username = $1"
-	err = tx.QueryRow(query, newTransfer.ReceiptUsername).Scan(&receiptId)
-	if err != nil {
-		tx.Rollback()
-		log.Println(err)
-		return entity.Transfer{}, err
-	} else {
-		log.Println("Get ReceiptId")
-	}
-
-	ReceiptId, _ := strconv.Atoi(receiptId)
 
 	// Terima Uang
 	_, err = tx.Exec("UPDATE m_member SET wallet_amount = wallet_amount + $1 WHERE member_id = $2", newTransfer.TransferAmount, ReceiptId)
