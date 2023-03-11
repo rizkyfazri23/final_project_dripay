@@ -67,3 +67,25 @@ func NewFailedMessage(httpCode int, code string, err error) (httpStatusCode int,
 	}
 	return
 }
+
+func NewFailedMessage(httpCode int, code string, err error) (httpStatusCode int, apiResponse ApiResponse) {
+	if httpCode == 0 {
+		httpStatusCode = http.StatusOK
+	} else {
+		httpStatusCode = httpCode
+	}
+	if code == "" {
+		code = DefaultSuccessCode
+	}
+	var userError *app_error.AppError
+	if errors.As(err, &userError) {
+		apiResponse = ApiResponse{
+			code, DefaultErrorStatus, userError.ErrorMessage, nil,
+		}
+	} else {
+		apiResponse = ApiResponse{
+			code, DefaultErrorStatus, DefaultErrorMessage, nil,
+		}
+	}
+	return
+}

@@ -1,137 +1,128 @@
 package repository
 
 import (
+	"database/sql"
 	"errors"
 	"log"
-	"math/rand"
 	"strconv"
+	"time"
 
-	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/rizkyfazri23/dripay/model/entity"
 )
 
 type TransferRepository interface {
-	CreateTransfer(newTransfer *entity.TransferInfo) (*entity.Transfer, error)
+	CreateTransfer(newTransfer *entity.TransferInfo) (entity.Transfer, error)
 }
 
 type transferRepository struct {
-	db *sqlx.DB
+	db *sql.DB
 }
 
-func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (*entity.Transfer, error) {
+func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (entity.Transfer, error) {
 	log.Println(newTransfer)
-	tx := r.db.MustBegin()
+
+	tx, err := r.db.Begin()
+	if err != nil {
+		log.Println(err)
+		return entity.Transfer{}, err
+	}
 
 	var senderId int
 	query := "SELECT member_id FROM m_member WHERE username = $1"
-	err := tx.Get(&senderId, query, newTransfer.SenderUsername)
+	err = tx.QueryRow(query, newTransfer.SenderUsername).Scan(&senderId)
 	if err != nil {
-		log.Println(err)
 		tx.Rollback()
-		return &entity.Transfer{}, err
+		log.Println(err)
+		return entity.Transfer{}, err
 	} else {
 		log.Println("Get senderId")
 	}
 
 	var senderBalance float32
 	query = "SELECT wallet_amount FROM m_member WHERE member_id = $1"
-	err = tx.Get(&senderBalance, query, senderId)
+	err = tx.QueryRow(query, senderId).Scan(&senderBalance)
 	if err != nil {
-		log.Println(err)
 		tx.Rollback()
-		return &entity.Transfer{}, err
+		log.Println(err)
+		return entity.Transfer{}, err
 	} else {
 		log.Println("Get SenderBalance")
 	}
-
 	if senderBalance < newTransfer.TransferAmount {
 		err := errors.New("Insufficient funds")
-		log.Println(err)
+		log.Println("Insufficient funds")
 		tx.Rollback()
-		return &entity.Transfer{}, err
+		return entity.Transfer{}, err
 	} else {
 		log.Println("Duit cukup")
 	}
 
 	//Kirim Uang
-	_, err = tx.NamedExec("UPDATE m_member SET wallet_amount = wallet_amount - :Transfer_Amount WHERE member_id = :sender_id", map[string]interface{}{
-		"Transfer_Amount": newTransfer.TransferAmount,
-		"sender_id":       senderId,
-	})
+	_, err = tx.Exec("UPDATE m_member SET wallet_amount = wallet_amount - $1 WHERE member_id = $2", newTransfer.TransferAmount, senderId)
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()
-		return &entity.Transfer{}, err
+		return entity.Transfer{}, err
 	} else {
 		log.Println("funds transferred")
 	}
 
 	var receiptId string
 	query = "SELECT member_id FROM m_member WHERE username = $1"
-	err = tx.Get(&receiptId, query, newTransfer.ReceiptUsername)
+	err = tx.QueryRow(query, newTransfer.ReceiptUsername).Scan(&receiptId)
 	if err != nil {
-		log.Println(err)
 		tx.Rollback()
-		return &entity.Transfer{}, err
-
+		log.Println(err)
+		return entity.Transfer{}, err
 	} else {
 		log.Println("Get ReceiptId")
 	}
 
-	ReceiptId, err := strconv.Atoi(receiptId)
+	ReceiptId, _ := strconv.Atoi(receiptId)
 
 	// Terima Uang
-	_, err = tx.NamedExec("UPDATE m_member SET wallet_amount = wallet_amount + :Transfer_Amount WHERE member_id = :receipt_id", map[string]interface{}{
-		"Transfer_Amount": newTransfer.TransferAmount,
-		"receipt_id":      ReceiptId,
-	})
+	_, err = tx.Exec("UPDATE m_member SET wallet_amount = wallet_amount + $1 WHERE member_id = $2", newTransfer.TransferAmount, ReceiptId)
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()
-		return &entity.Transfer{}, err
+		return entity.Transfer{}, err
 	} else {
 		log.Println("funds received")
 	}
 
 	var gatewayId string
 	query = "SELECT gateway_id FROM m_gateway WHERE gateway_name = $1"
-	err = tx.Get(&gatewayId, query, newTransfer.PaymentGateway)
+	err = tx.QueryRow(query, newTransfer.PaymentGateway).Scan(&gatewayId)
 	if err != nil {
-		log.Println(err)
 		tx.Rollback()
-		return &entity.Transfer{}, err
+		log.Println(err)
+		return entity.Transfer{}, err
 	} else {
 		log.Println("Get ReceiptId")
 	}
-	GatewayId, err := strconv.Atoi(gatewayId)
+	GatewayId, _ := strconv.Atoi(gatewayId)
 
-	TransCode := rand.Intn(100000000)
-	query = "INSERT INTO t_transfer (transfer_code, sender_id, receipt_id, transfer_amount, transfer_gateway_id, description) VALUES ($1, $2, $3, $4, $5, $6)"
-	_, err = r.db.Exec(query, TransCode, senderId, receiptId, newTransfer.TransferAmount, GatewayId, newTransfer.Description)
+	var TransCode string
+	var dateTime time.Time
+	var transferID int
+
+	query = "INSERT INTO t_transfer (sender_id, receipt_id, transfer_amount, transfer_gateway_id, description) VALUES ($1, $2, $3, $4, $5) RETURNING transfer_id, transfer_code, date_time"
+	err = r.db.QueryRow(query, senderId, receiptId, newTransfer.TransferAmount, GatewayId, newTransfer.Description).Scan(&transferID, &TransCode, &dateTime)
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()
-		return &entity.Transfer{}, err
+		return entity.Transfer{}, err
 	} else {
 		log.Println("Transfer Created")
 	}
 
-	var typeId int
-
-	err = tx.Get(&typeId, `SELECT type_id FROM m_transaction_type WHERE type_name = $1`, "Transfer")
-	if err != nil {
-		log.Println(err)
-		tx.Rollback()
-		return &entity.Transfer{}, err
-	}
-
 	query = "INSERT INTO t_transaction_log (member_id, type_id, amount, transaction_code)  VALUES ($1, $2, $3, $4)"
-	_, err = r.db.Exec(query, senderId, typeId, newTransfer.TransferAmount, TransCode)
+	_, err = r.db.Exec(query, senderId, 1, newTransfer.TransferAmount, TransCode)
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()
-		return &entity.Transfer{}, err
+		return entity.Transfer{}, err
 	} else {
 		log.Println("Transaction Log Created")
 	}
@@ -140,21 +131,24 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (*
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()
-		return &entity.Transfer{}, err
+		return entity.Transfer{}, err
 	} else {
 		log.Println("Commited")
 	}
 
-	return &entity.Transfer{
+	return entity.Transfer{
+		Id:                  transferID,
+		Transfer_Code:       TransCode,
 		Sender_Id:           senderId,
 		Transfer_Amount:     newTransfer.TransferAmount,
 		Transfer_Gateway_Id: GatewayId,
 		Receipt_Id:          ReceiptId,
 		Description:         newTransfer.Description,
+		Date_time:           dateTime,
 	}, nil
 }
 
-func NewTransferRepo(db *sqlx.DB) TransferRepository {
+func NewTransferRepo(db *sql.DB) TransferRepository {
 	repo := new(transferRepository)
 	repo.db = db
 	return repo

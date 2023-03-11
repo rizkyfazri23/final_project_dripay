@@ -45,3 +45,11 @@ func NewInfraManager(cfg config.AppConfig) InfraManager {
 	infra.initDb()
 	return &infra
 }
+
+func NewInfraManager(cfg config.AppConfig) InfraManager {
+	infra := infraManager{
+		cfg: cfg,
+	}
+	infra.initDb()
+	return &infra
+}
