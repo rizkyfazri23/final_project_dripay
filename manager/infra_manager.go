@@ -1,27 +1,27 @@
 package manager
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/rizkyfazri23/dripay/config"
 )
 
 type InfraManager interface {
-	DbConn() *sqlx.DB
+	DbConn() *sql.DB
 }
 
 type infraManager struct {
-	db  *sqlx.DB
+	db  *sql.DB
 	cfg config.AppConfig
 }
 
 func (i *infraManager) initDb() {
-	dataSourceName := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", i.cfg.DBHost, i.cfg.DBPort, i.cfg.DBUser, i.cfg.DBPass, i.cfg.DBName, i.cfg.DBSSLMode)
-	db, err := sqlx.Open("postgres", dataSourceName)
+	dataSourceName := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", i.cfg.Host, i.cfg.Port, i.cfg.User, i.cfg.Password, i.cfg.Name, i.cfg.SslMode)
+	db, err := sql.Open("postgres", dataSourceName)
 	if err != nil {
-		log.Println(err)
+		panic(err)
 	}
 	defer func() {
 		if err := recover(); err != nil {
@@ -34,16 +34,8 @@ func (i *infraManager) initDb() {
 	fmt.Println("DB Connected")
 }
 
-func (i *infraManager) DbConn() *sqlx.DB {
+func (i *infraManager) DbConn() *sql.DB {
 	return i.db
-}
-
-func NewInfraManager(cfg config.AppConfig) InfraManager {
-	infra := infraManager{
-		cfg: cfg,
-	}
-	infra.initDb()
-	return &infra
 }
 
 func NewInfraManager(cfg config.AppConfig) InfraManager {

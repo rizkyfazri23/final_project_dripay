@@ -28,6 +28,24 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (e
 		return entity.Transfer{}, err
 	}
 
+	if newTransfer.SenderUsername == newTransfer.ReceiptUsername {
+		err := errors.New("Can't transfer to yourself")
+		log.Println("Sender and recipient usernames are identical")
+		tx.Rollback()
+		return entity.Transfer{}, err
+	} else {
+		log.Println("Diff username")
+	}
+
+	if newTransfer.TransferAmount < 1 {
+		err := errors.New("What do you want to transfer? hope?")
+		log.Println("Transfer amount invalid")
+		tx.Rollback()
+		return entity.Transfer{}, err
+	} else {
+		log.Println("Transfer amount valid")
+	}
+
 	var senderId int
 	query := "SELECT member_id FROM m_member WHERE username = $1"
 	err = tx.QueryRow(query, newTransfer.SenderUsername).Scan(&senderId)
@@ -49,13 +67,14 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (e
 	} else {
 		log.Println("Get SenderBalance")
 	}
+
 	if senderBalance < newTransfer.TransferAmount {
-		err := errors.New("Insufficient funds")
+		err := errors.New("You don't have that much money")
 		log.Println("Insufficient funds")
 		tx.Rollback()
 		return entity.Transfer{}, err
 	} else {
-		log.Println("Duit cukup")
+		log.Println("Sufficient funds")
 	}
 
 	//Kirim Uang
@@ -99,7 +118,7 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (e
 		log.Println(err)
 		return entity.Transfer{}, err
 	} else {
-		log.Println("Get ReceiptId")
+		log.Println("Get GatewayId")
 	}
 	GatewayId, _ := strconv.Atoi(gatewayId)
 
@@ -117,8 +136,19 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (e
 		log.Println("Transfer Created")
 	}
 
+	var typeId int
+	query = "SELECT type_id FROM m_transaction_type WHERE type_name = $1"
+	err = tx.QueryRow(query, "Transfer").Scan(&typeId)
+	if err != nil {
+		tx.Rollback()
+		log.Println(err)
+		return entity.Transfer{}, err
+	} else {
+		log.Println("Get GatewayId")
+	}
+
 	query = "INSERT INTO t_transaction_log (member_id, type_id, amount, transaction_code)  VALUES ($1, $2, $3, $4)"
-	_, err = r.db.Exec(query, senderId, 1, newTransfer.TransferAmount, TransCode)
+	_, err = r.db.Exec(query, senderId, typeId, newTransfer.TransferAmount, TransCode)
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()

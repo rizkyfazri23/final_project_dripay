@@ -134,10 +134,9 @@ func (d *depositRepository) MakeDeposit(newDeposit *entity.DepositRequest, membe
 		}
 	}()
 
-	var  depositGatewayID, transactionID, depositID int
+	var depositGatewayID, transactionID, depositID int
 	var transactionCode string
 	var dateTime time.Time
-
 
 	err = tx.QueryRow(`SELECT gateway_id FROM m_gateway WHERE gateway_name = $1`, newDeposit.Deposit_Gateway).Scan(&depositGatewayID)
 	if err != nil {
