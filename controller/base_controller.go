@@ -7,13 +7,13 @@
 package controller
 
 import (
-	"github.com/rizkyfazri23/dripay/model/dto/res"
 	"github.com/gin-gonic/gin"
+	"github.com/rizkyfazri23/dripay/model/dto/res"
 )
 
-type BaseController struct {}
+type BaseController struct{}
 
-func (b *BaseController) Success(c *gin.Context, httpCode int, code string, msg string, data any) {
+func (b *BaseController) Success(c *gin.Context, httpCode int, code string, msg string, data interface{}) {
 	res.NewSuccessJsonResponse(c, httpCode, code, msg, data).Send()
 }
 

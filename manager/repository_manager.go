@@ -8,6 +8,7 @@ type RepoManager interface {
 	HistoryRepo() repository.HistoryRepository
 	DepositRepo() repository.DepositRepository
 	TransferRepo() repository.TransferRepository
+	PaymentRepo() repository.PaymentRepository
 }
 
 type repositoryManager struct {
@@ -32,6 +33,10 @@ func (r *repositoryManager) DepositRepo() repository.DepositRepository {
 
 func (r *repositoryManager) TransferRepo() repository.TransferRepository {
 	return repository.NewTransferRepo(r.infraManager.DbConn())
+}
+
+func (r *repositoryManager) PaymentRepo() repository.PaymentRepository {
+	return repository.NewPaymentRepository(r.infraManager.DbConn())
 }
 
 func NewRepoManager(manager InfraManager) RepoManager {
