@@ -23,6 +23,7 @@ func (p *AppServer) v1() {
 	p.transferController(v1Routes)
 	p.depositController(v1Routes)
 	p.historyController(v1Routes)
+	p.splitController(v1Routes)
 }
 
 func (p *AppServer) gatewayController(rg *gin.RouterGroup) {
@@ -43,6 +44,10 @@ func (p *AppServer) depositController(rg *gin.RouterGroup) {
 
 func (p *AppServer) historyController(rg *gin.RouterGroup) {
 	controller.NewHistoryController(rg, p.usecaseManager.HistoryUsecase())
+}
+
+func (p *AppServer) splitController(rg *gin.RouterGroup) {
+	controller.NewSplitController(rg, p.usecaseManager.SplitUsecase())
 }
 
 func (p *AppServer) Run() {
