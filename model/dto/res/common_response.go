@@ -28,7 +28,7 @@ type ApiResponse struct {
 	Data    any    `json:"data,omitempty"`
 }
 
-func NewSuccessMessage(httpCode int, code string, msg string, data any) (httpStatusCode int, apiResponse ApiResponse) {
+func NewSuccessMessage(httpCode int, code string, msg string, data interface{}) (httpStatusCode int, apiResponse ApiResponse) {
 	if httpCode == 0 {
 		httpStatusCode = http.StatusOK
 	} else {

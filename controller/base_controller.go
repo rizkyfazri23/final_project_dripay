@@ -7,7 +7,7 @@ import (
 
 type BaseController struct{}
 
-func (b *BaseController) Success(c *gin.Context, httpCode int, code string, msg string, data any) {
+func (b *BaseController) Success(c *gin.Context, httpCode int, code string, msg string, data interface{}) {
 	res.NewSuccessJsonResponse(c, httpCode, code, msg, data).Send()
 }
 
