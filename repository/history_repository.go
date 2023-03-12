@@ -20,29 +20,18 @@ type historyRepository struct {
 
 func (r *historyRepository) AllHistory(memberID int) ([]entity.History, error) {
 
-	query := (`				SELECT 
-										t.transaction_log_id as Id,
-										m.username as Member_Username,
-										ty.type_name as Transaction_Type,
-										CASE 
-											WHEN t.status = 0 THEN t.amount
-											ELSE 0
-										END AS debit,
-										CASE 
-											WHEN t.status = 1 THEN t.amount
-											ELSE 0
-										END AS kredit,
-										t.date_time as Date_Time,
-										t.status as Status,
-										t.transaction_code as Transaction_Code
-							FROM		 
-										t_transaction_log t
-							INNER JOIN 					
-										m_transaction_type ty ON t.type_id = ty.type_id
-							INNER JOIN 					
-										m_member m ON t.member_id = m.member_id
-							WHERE 		m.member_id = $1
-							ORDER BY	date_time desc`)
+	query := (`	
+			SELECT 			id,
+							member_username, 
+							transaction_type, 
+							debit, 
+							kredit,
+							date_time,
+							status, 
+							transaction_code 
+			FROM 			transaction_history
+			WHERE			member_id = $1
+			ORDER BY		date_time desc;`)
 	rows, err := r.db.Query(query, memberID)
 	if err != nil {
 		log.Fatalln(err)
@@ -54,7 +43,7 @@ func (r *historyRepository) AllHistory(memberID int) ([]entity.History, error) {
 
 	for rows.Next() {
 		var h entity.History
-		err := rows.Scan(&h.Id, &h.Member_Username, &h.Transaction_Type, &h.Debit, &h.Debit, &h.Date_Time, &h.Status, &h.Transaction_Code)
+		err := rows.Scan(&h.Id, &h.Member_Username, &h.Transaction_Type, &h.Debit, &h.Kredit, &h.Date_Time, &h.Status, &h.Transaction_Code)
 		if err != nil {
 			log.Fatal(err)
 			return nil, err
@@ -71,25 +60,17 @@ func (r *historyRepository) AllHistory(memberID int) ([]entity.History, error) {
 
 func (r *historyRepository) PaymentHistory(memberID int) ([]entity.History, error) {
 
-	query := (`				SELECT 
-										t.transaction_log_id as Id,
-										m.username as Member_Username,
-										ty.type_name as Transaction_Type,
-										CASE 
-											WHEN t.status = 0 THEN t.amount
-											ELSE 0
-										END AS debit,
-										t.date_time as Date_Time,
-										t.status as Status,
-										t.transaction_code as Transaction_Code
-							FROM		 
-										t_transaction_log t
-							INNER JOIN 					
-										m_transaction_type ty ON t.type_id = ty.type_id
-							INNER JOIN 					
-										m_member m ON t.member_id = m.member_id
-							WHERE 		m.member_id = $1 AND ty.type_name = 'Payment'
-							ORDER BY	date_time desc`)
+	query := (`	
+			SELECT 			id,
+							member_username, 
+							transaction_type, 
+							debit, 
+							date_time,
+							status, 
+							transaction_code 
+			FROM 			transaction_history
+			WHERE			member_id = $1 AND transaction_type = 'Payment'
+			ORDER BY		date_time desc;`)
 	rows, err := r.db.Query(query, memberID)
 
 	if err != nil {
@@ -119,29 +100,18 @@ func (r *historyRepository) PaymentHistory(memberID int) ([]entity.History, erro
 
 func (r *historyRepository) TransferHistory(memberID int) ([]entity.History, error) {
 
-	query := (`				SELECT 
-										t.transaction_log_id as Id,
-										m.username as Member_Username,
-										ty.type_name as Transaction_Type,
-										CASE 
-											WHEN t.status = 0 THEN t.amount
-											ELSE 0
-										END AS debit,
-										CASE 
-											WHEN t.status = 1 THEN t.amount
-											ELSE 0
-										END AS kredit,
-										t.date_time as Date_Time,
-										t.status as Status,
-										t.transaction_code as Transaction_Code
-							FROM		 
-										t_transaction_log t
-							INNER JOIN 					
-										m_transaction_type ty ON t.type_id = ty.type_id
-							INNER JOIN 					
-										m_member m ON t.member_id = m.member_id
-							WHERE 		m.member_id = $1 AND ty.type_name = 'Transfer'
-							ORDER BY	date_time desc`)
+	query := (`	
+			SELECT 			id,
+							member_username, 
+							transaction_type, 
+							debit, 
+							kredit,
+							date_time,
+							status, 
+							transaction_code 
+			FROM 			transaction_history
+			WHERE			member_id = $1 AND transaction_type = 'Transfer'
+			ORDER BY		date_time desc;`)
 	rows, err := r.db.Query(query, memberID)
 
 	if err != nil {
@@ -171,25 +141,17 @@ func (r *historyRepository) TransferHistory(memberID int) ([]entity.History, err
 
 func (r *historyRepository) DepositHistory(memberID int) ([]entity.History, error) {
 
-	query := (`				SELECT 
-										t.transaction_log_id as Id,
-										m.username as Member_Username,
-										ty.type_name as Transaction_Type,
-										CASE 
-											WHEN t.status = 1 THEN t.amount
-											ELSE 0
-										END AS kredit,
-										t.date_time as Date_Time,
-										t.status as Status,
-										t.transaction_code as Transaction_Code
-							FROM		 
-										t_transaction_log t
-							INNER JOIN 					
-										m_transaction_type ty ON t.type_id = ty.type_id
-							INNER JOIN 					
-										m_member m ON t.member_id = m.member_id
-							WHERE 		m.member_id = $1 AND ty.type_name = 'Deposit'
-							ORDER BY	date_time desc`)
+	query := (`	
+			SELECT 			id,
+							member_username, 
+							transaction_type, 
+							kredit,
+							date_time,
+							status, 
+							transaction_code 
+			FROM 			transaction_history
+			WHERE			member_id = $1 AND transaction_type = 'Deposit'
+			ORDER BY		date_time desc;`)
 	rows, err := r.db.Query(query, memberID)
 
 	if err != nil {

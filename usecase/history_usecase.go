@@ -35,5 +35,5 @@ func (u *historyUsecase) GetAllTransfer(memberID int) ([]entity.History, error) 
 }
 
 func (u *historyUsecase) GetAllDeposit(memberID int) ([]entity.History, error) {
-	return u.historyRepo.TransferHistory(memberID)
+	return u.historyRepo.DepositHistory(memberID)
 }
