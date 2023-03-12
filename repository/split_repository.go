@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"log"
 	"time"
 
 	"github.com/rizkyfazri23/dripay/model/entity"
@@ -21,14 +22,20 @@ func (s *splitRepository) SplitBill(newSplit *entity.SplitRequest, member_id int
 
 	tx, err := s.db.Begin()
 	if err != nil {
+		log.Println(err)
 		return nil, err
+	} else {
+		log.Println(27)
 	}
 
 	var memberUsername string
 
 	err = tx.QueryRow(`SELECT username FROM m_member WHERE member_id = $1`, member_id).Scan(&memberUsername)
 	if err != nil {
+		log.Println(err)
 		return nil, err
+	} else {
+		log.Println(34)
 	}
 
 	found := false
@@ -53,28 +60,40 @@ func (s *splitRepository) SplitBill(newSplit *entity.SplitRequest, member_id int
 		var paymentCode string
 		var paymentTime time.Time
 
-		err := tx.QueryRow("SELECT member_id FROM m_member WHERE member_username = $1", member.Member_Username).Scan(&memberID)
+		err := tx.QueryRow("SELECT member_id FROM m_member WHERE username = $1", member.Member_Username).Scan(&memberID)
 		if err != nil {
+			log.Println(err)
 			tx.Rollback()
 			return nil, err
+		} else {
+			log.Println(68)
 		}
 
-		err = tx.QueryRow("INSERT INTO t_payment (member_id, payment_amount, payment_gateway_id, description, status) VALUES ($1, $2, $3, $4, $5) RETURNING payment_id, payment_code, date_time", memberID, paymentAmount, 1, newSplit.Description, "Success").Scan(&paymentID, paymentCode, paymentTime)
+		err = tx.QueryRow("INSERT INTO t_payment (member_id, payment_amount, payment_gateway_id, description, status) VALUES ($1, $2, $3, $4, $5) RETURNING payment_id, payment_code, date_time", memberID, paymentAmount, 1, newSplit.Description, "Success").Scan(&paymentID, &paymentCode, &paymentTime)
 		if err != nil {
+			log.Println(err)
 			tx.Rollback()
 			return nil, err
+		} else {
+			log.Println(76)
 		}
 
 		_, err = tx.Exec("UPDATE m_member SET wallet_amount = wallet_amount - $1 WHERE member_id = $2", paymentAmount, memberID)
 		if err != nil {
+			log.Println(err)
 			tx.Rollback()
 			return nil, err
+		} else {
+			log.Println(83)
 		}
 
-		_, err = tx.Exec("INSERT INTO t_transaction_log (member_id, transaction_amount, transaction_type) VALUES ($1, $2, $3)", memberID, paymentAmount, "split bill")
+		_, err = tx.Exec("INSERT INTO t_transaction_log (member_id, amount, type_id, transaction_code) VALUES ($1, $2, $3, $4)", memberID, paymentAmount, 1, paymentCode)
 		if err != nil {
+			log.Println(err)
 			tx.Rollback()
 			return nil, err
+		} else {
+			log.Println(92)
 		}
 
 		response = append(response, entity.SplitResponse{
@@ -91,7 +110,10 @@ func (s *splitRepository) SplitBill(newSplit *entity.SplitRequest, member_id int
 
 	err = tx.Commit()
 	if err != nil {
+		log.Println(err)
 		return nil, err
+	} else {
+		log.Println(110)
 	}
 
 	return response, nil
