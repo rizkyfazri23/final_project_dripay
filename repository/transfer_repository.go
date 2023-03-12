@@ -43,7 +43,7 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo, se
 	ReceiptId, _ := strconv.Atoi(receiptId)
 
 	if senderId == ReceiptId {
-		err := errors.New("Can't transfer to yourself")
+		err := errors.New("can't transfer to yourself")
 		log.Println("Sender and recipient usernames are identical")
 		tx.Rollback()
 		return entity.Transfer{}, err
@@ -63,7 +63,7 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo, se
 	}
 
 	if senderBalance < newTransfer.TransferAmount {
-		err := errors.New("You don't have that much money")
+		err := errors.New("you don't have that much money")
 		log.Println("Insufficient funds")
 		tx.Rollback()
 		return entity.Transfer{}, err
