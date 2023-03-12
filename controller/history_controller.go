@@ -7,6 +7,7 @@ import (
 	"github.com/rizkyfazri23/dripay/middlewares"
 	"github.com/rizkyfazri23/dripay/model/app_error"
 	"github.com/rizkyfazri23/dripay/usecase"
+	"github.com/rizkyfazri23/dripay/utils"
 )
 
 type HistoryController struct {
@@ -33,7 +34,8 @@ func NewHistoryController(r *gin.RouterGroup, u usecase.HistoryUsecase) *History
 }
 
 func (c *HistoryController) GetAll(ctx *gin.Context) {
-	res, err := c.usecase.GetAll()
+	id, err := utils.ExtractTokenID(ctx)
+	res, err := c.usecase.GetAll(id)
 	if err != nil {
 		c.Failed(ctx, http.StatusInternalServerError, "", app_error.UnknownError(""))
 		return
@@ -43,7 +45,8 @@ func (c *HistoryController) GetAll(ctx *gin.Context) {
 }
 
 func (c *HistoryController) GetAllPayment(ctx *gin.Context) {
-	res, err := c.usecase.GetAllPayment()
+	id, err := utils.ExtractTokenID(ctx)
+	res, err := c.usecase.GetAllPayment(id)
 	if err != nil {
 		c.Failed(ctx, http.StatusInternalServerError, "", app_error.UnknownError(""))
 		return
@@ -53,7 +56,8 @@ func (c *HistoryController) GetAllPayment(ctx *gin.Context) {
 }
 
 func (c *HistoryController) GetAllTransfer(ctx *gin.Context) {
-	res, err := c.usecase.GetAllTransfer()
+	id, err := utils.ExtractTokenID(ctx)
+	res, err := c.usecase.GetAllTransfer(id)
 	if err != nil {
 		c.Failed(ctx, http.StatusInternalServerError, "", app_error.UnknownError(""))
 		return
@@ -63,7 +67,8 @@ func (c *HistoryController) GetAllTransfer(ctx *gin.Context) {
 }
 
 func (c *HistoryController) GetAllDeposit(ctx *gin.Context) {
-	res, err := c.usecase.GetAllDeposit()
+	id, err := utils.ExtractTokenID(ctx)
+	res, err := c.usecase.GetAllDeposit(id)
 	if err != nil {
 		c.Failed(ctx, http.StatusInternalServerError, "", app_error.UnknownError(""))
 		return

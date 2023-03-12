@@ -6,7 +6,7 @@ import (
 )
 
 type TransferUsecase interface {
-	TransferBalance(newTransfer *entity.TransferInfo) (entity.Transfer, error)
+	TransferBalance(newTransfer *entity.TransferInfo, senderId int) (entity.Transfer, error)
 }
 
 type transferUsecase struct {
@@ -19,6 +19,6 @@ func NewTransferUsecase(transRepo repository.TransferRepository) TransferUsecase
 	}
 }
 
-func (u *transferUsecase) TransferBalance(newTransfer *entity.TransferInfo) (entity.Transfer, error) {
-	return u.transferRepo.CreateTransfer(newTransfer)
+func (u *transferUsecase) TransferBalance(newTransfer *entity.TransferInfo, senderId int) (entity.Transfer, error) {
+	return u.transferRepo.CreateTransfer(newTransfer, senderId)
 }

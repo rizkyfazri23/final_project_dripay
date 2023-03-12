@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 	"strconv"
 	"time"
@@ -11,14 +12,14 @@ import (
 )
 
 type TransferRepository interface {
-	CreateTransfer(newTransfer *entity.TransferInfo) (entity.Transfer, error)
+	CreateTransfer(newTransfer *entity.TransferInfo, senderId int) (entity.Transfer, error)
 }
 
 type transferRepository struct {
 	db *sql.DB
 }
 
-func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (entity.Transfer, error) {
+func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo, senderId int) (entity.Transfer, error) {
 	log.Println(newTransfer)
 
 	tx, err := r.db.Begin()
@@ -27,15 +28,27 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (e
 		return entity.Transfer{}, err
 	}
 
-	var senderId int
+	// check penerima
+	var receiptId string
 	query := "SELECT member_id FROM m_member WHERE username = $1"
-	err = tx.QueryRow(query, newTransfer.SenderUsername).Scan(&senderId)
+	err = tx.QueryRow(query, newTransfer.ReceiptUsername).Scan(&receiptId)
 	if err != nil {
 		tx.Rollback()
 		log.Println(err)
 		return entity.Transfer{}, err
 	} else {
-		log.Println("Get senderId")
+		log.Println("Get ReceiptId")
+	}
+
+	ReceiptId, _ := strconv.Atoi(receiptId)
+
+	if senderId == ReceiptId {
+		err := errors.New("Can't transfer to yourself")
+		log.Println("Sender and recipient usernames are identical")
+		tx.Rollback()
+		return entity.Transfer{}, err
+	} else {
+		log.Println("Diff username")
 	}
 
 	var senderBalance float32
@@ -48,12 +61,14 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (e
 	} else {
 		log.Println("Get SenderBalance")
 	}
+
 	if senderBalance < newTransfer.TransferAmount {
+		err := errors.New("You don't have that much money")
 		log.Println("Insufficient funds")
 		tx.Rollback()
 		return entity.Transfer{}, err
 	} else {
-		log.Println("Duit cukup")
+		log.Println("Sufficient funds")
 	}
 
 	//Kirim Uang
@@ -65,19 +80,6 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (e
 	} else {
 		log.Println("funds transferred")
 	}
-
-	var receiptId string
-	query = "SELECT member_id FROM m_member WHERE username = $1"
-	err = tx.QueryRow(query, newTransfer.ReceiptUsername).Scan(&receiptId)
-	if err != nil {
-		tx.Rollback()
-		log.Println(err)
-		return entity.Transfer{}, err
-	} else {
-		log.Println("Get ReceiptId")
-	}
-
-	ReceiptId, _ := strconv.Atoi(receiptId)
 
 	// Terima Uang
 	_, err = tx.Exec("UPDATE m_member SET wallet_amount = wallet_amount + $1 WHERE member_id = $2", newTransfer.TransferAmount, ReceiptId)
@@ -97,7 +99,7 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (e
 		log.Println(err)
 		return entity.Transfer{}, err
 	} else {
-		log.Println("Get ReceiptId")
+		log.Println("Get GatewayId")
 	}
 	GatewayId, _ := strconv.Atoi(gatewayId)
 
@@ -115,8 +117,19 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo) (e
 		log.Println("Transfer Created")
 	}
 
-	query = "INSERT INTO t_transaction_log (member_id, type_id, amount, transaction_code)  VALUES ($1, $2, $3, $4)"
-	_, err = r.db.Exec(query, senderId, 1, newTransfer.TransferAmount, TransCode)
+	var typeId int
+	query = "SELECT type_id FROM m_transaction_type WHERE type_name = $1"
+	err = tx.QueryRow(query, "Transfer").Scan(&typeId)
+	if err != nil {
+		tx.Rollback()
+		log.Println(err)
+		return entity.Transfer{}, err
+	} else {
+		log.Println("Get GatewayId")
+	}
+	sendAmount := newTransfer.TransferAmount * -1
+	query = "INSERT INTO t_transaction_log (member_id, type_id, amount, transaction_code, status)  VALUES ($1, $2, $3, $4, $6), ($5, $2, $8, $4, $7)"
+	_, err = r.db.Exec(query, senderId, typeId, sendAmount, TransCode, ReceiptId, 0, 1, newTransfer.TransferAmount)
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()

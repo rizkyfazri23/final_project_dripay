@@ -134,10 +134,9 @@ func (d *depositRepository) MakeDeposit(newDeposit *entity.DepositRequest, membe
 		}
 	}()
 
-	var  depositGatewayID, transactionID, depositID int
+	var depositGatewayID, transactionID, depositID int
 	var transactionCode string
 	var dateTime time.Time
-
 
 	err = tx.QueryRow(`SELECT gateway_id FROM m_gateway WHERE gateway_name = $1`, newDeposit.Deposit_Gateway).Scan(&depositGatewayID)
 	if err != nil {
@@ -155,8 +154,8 @@ func (d *depositRepository) MakeDeposit(newDeposit *entity.DepositRequest, membe
 		return entity.Deposit{}, err
 	}
 
-	query = `UPDATE m_member SET wallet_amount = wallet_amount + $1 WHERE username = $2`
-	_, err = tx.Exec(query, newDeposit.Deposit_Amount, newDeposit.Member_Username)
+	query = `UPDATE m_member SET wallet_amount = wallet_amount + $1 WHERE member_id = $2`
+	_, err = tx.Exec(query, newDeposit.Deposit_Amount, member_id)
 	if err != nil {
 		return entity.Deposit{}, err
 	}
