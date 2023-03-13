@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -45,7 +44,7 @@ func (c *SplitController) Add(ctx *gin.Context) {
 	res, err := c.usecase.Add(split, member_id)
 
 	if err != nil {
-		c.Failed(ctx, http.StatusInternalServerError, "", fmt.Errorf("failed to split bill"))
+		c.Failed(ctx, http.StatusBadRequest, "", app_error.UnknownError(err.Error()))
 		return
 	}
 
