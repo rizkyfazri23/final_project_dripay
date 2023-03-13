@@ -34,7 +34,7 @@ func NewHistoryController(r *gin.RouterGroup, u usecase.HistoryUsecase) *History
 }
 
 func (c *HistoryController) GetAll(ctx *gin.Context) {
-	id, err := utils.ExtractTokenID(ctx)
+	id, _ := utils.ExtractTokenID(ctx)
 	res, err := c.usecase.GetAll(id)
 	if err != nil {
 		c.Failed(ctx, http.StatusInternalServerError, "", app_error.UnknownError(""))
@@ -45,7 +45,7 @@ func (c *HistoryController) GetAll(ctx *gin.Context) {
 }
 
 func (c *HistoryController) GetAllPayment(ctx *gin.Context) {
-	id, err := utils.ExtractTokenID(ctx)
+	id, _ := utils.ExtractTokenID(ctx)
 	res, err := c.usecase.GetAllPayment(id)
 	if err != nil {
 		c.Failed(ctx, http.StatusInternalServerError, "", app_error.UnknownError(""))
@@ -56,7 +56,7 @@ func (c *HistoryController) GetAllPayment(ctx *gin.Context) {
 }
 
 func (c *HistoryController) GetAllTransfer(ctx *gin.Context) {
-	id, err := utils.ExtractTokenID(ctx)
+	id, _ := utils.ExtractTokenID(ctx)
 	res, err := c.usecase.GetAllTransfer(id)
 	if err != nil {
 		c.Failed(ctx, http.StatusInternalServerError, "", app_error.UnknownError(""))
@@ -67,7 +67,7 @@ func (c *HistoryController) GetAllTransfer(ctx *gin.Context) {
 }
 
 func (c *HistoryController) GetAllDeposit(ctx *gin.Context) {
-	id, err := utils.ExtractTokenID(ctx)
+	id, _ := utils.ExtractTokenID(ctx)
 	res, err := c.usecase.GetAllDeposit(id)
 	if err != nil {
 		c.Failed(ctx, http.StatusInternalServerError, "", app_error.UnknownError(""))

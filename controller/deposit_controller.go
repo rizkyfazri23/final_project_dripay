@@ -10,7 +10,6 @@ import (
 	"github.com/rizkyfazri23/dripay/model/entity"
 	"github.com/rizkyfazri23/dripay/usecase"
 	"github.com/rizkyfazri23/dripay/utils"
-
 )
 
 type DepositController struct {
@@ -46,8 +45,7 @@ func (c *DepositController) Add(ctx *gin.Context) {
 	// 	return
 	// }
 
-	member_id, err := utils.ExtractTokenID(ctx)
-
+	member_id, _ := utils.ExtractTokenID(ctx)
 
 	res, err := c.usecase.Add(deposit, member_id)
 
