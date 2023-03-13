@@ -3,16 +3,16 @@ package res
 import "github.com/gin-gonic/gin"
 
 type JsonResponse struct {
-	c *gin.Context
+	c              *gin.Context
 	httpStatusCode int
-	response ApiResponse
+	response       ApiResponse
 }
 
 func (j *JsonResponse) Send() {
 	j.c.JSON(j.httpStatusCode, j.response)
 }
 
-func NewSuccessJsonResponse(c *gin.Context, httpCode int, code string, msg string, data any) AppHttpResponse {
+func NewSuccessJsonResponse(c *gin.Context, httpCode int, code string, msg string, data interface{}) AppHttpResponse {
 	httpStatusCode, res := NewSuccessMessage(httpCode, code, msg, data)
 	return &JsonResponse{
 		c,

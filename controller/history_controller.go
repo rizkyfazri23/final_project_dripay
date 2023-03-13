@@ -83,7 +83,7 @@ func (c *HistoryController) GetAllDeposit(ctx *gin.Context) {
 
 func (c *HistoryController) ExportPDF(ctx *gin.Context) {
 	id, err := utils.ExtractTokenID(ctx)
-	
+
 	fmt.Println(id)
 
 	histories, err := c.usecase.GetAll(id)

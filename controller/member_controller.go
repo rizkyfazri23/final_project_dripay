@@ -140,14 +140,14 @@ func (c *MemberController) CurrentMember(ctx *gin.Context) {
 	member_id, err := utils.ExtractTokenID(ctx)
 
 	fmt.Println(member_id)
-	
+
 	if err != nil {
 		c.Failed(ctx, http.StatusBadRequest, "", app_error.InvalidError(err.Error()))
 		return
 	}
-	
-	u,err := c.usecase.GetOne(int(member_id))
-	
+
+	u, err := c.usecase.GetOne(int(member_id))
+
 	if err != nil {
 		c.Failed(ctx, http.StatusBadRequest, "", app_error.InvalidError(err.Error()))
 		return

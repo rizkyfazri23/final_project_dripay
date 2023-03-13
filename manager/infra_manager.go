@@ -13,7 +13,7 @@ type InfraManager interface {
 }
 
 type infraManager struct {
-	db *sql.DB
+	db  *sql.DB
 	cfg config.AppConfig
 }
 
@@ -23,7 +23,7 @@ func (i *infraManager) initDb() {
 	if err != nil {
 		panic(err)
 	}
-	defer func () {
+	defer func() {
 		if err := recover(); err != nil {
 			log.Println("Application filed to run", err)
 			db.Close()
@@ -39,7 +39,7 @@ func (i *infraManager) DbConn() *sql.DB {
 }
 
 func NewInfraManager(cfg config.AppConfig) InfraManager {
-	infra := infraManager {
+	infra := infraManager{
 		cfg: cfg,
 	}
 	infra.initDb()
