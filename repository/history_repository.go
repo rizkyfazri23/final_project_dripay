@@ -34,6 +34,8 @@ func (r *historyRepository) AllHistory(memberID int) ([]entity.History, error) {
 			ORDER BY		date_time desc;`)
 	rows, err := r.db.Query(query, memberID)
 	if err != nil {
+		log.Fatalln("masuk")
+
 		log.Fatalln(err)
 		return nil, err
 	}
@@ -45,12 +47,16 @@ func (r *historyRepository) AllHistory(memberID int) ([]entity.History, error) {
 		var h entity.History
 		err := rows.Scan(&h.Id, &h.Member_Username, &h.Transaction_Type, &h.Debit, &h.Kredit, &h.Date_Time, &h.Status, &h.Transaction_Code)
 		if err != nil {
+			log.Fatalln("masuk2")
+
 			log.Fatal(err)
 			return nil, err
 		}
 		histories = append(histories, h)
 	}
 	if err := rows.Err(); err != nil {
+		log.Fatalln("masuk3")
+
 		log.Fatal(err)
 		return nil, err
 	}
@@ -115,6 +121,8 @@ func (r *historyRepository) TransferHistory(memberID int) ([]entity.History, err
 	rows, err := r.db.Query(query, memberID)
 
 	if err != nil {
+		log.Fatalln("masuk")
+
 		log.Fatalln(err)
 		return nil, err
 	}
@@ -126,12 +134,16 @@ func (r *historyRepository) TransferHistory(memberID int) ([]entity.History, err
 		var h entity.History
 		err := rows.Scan(&h.Id, &h.Member_Username, &h.Transaction_Type, &h.Debit, &h.Kredit, &h.Date_Time, &h.Status, &h.Transaction_Code)
 		if err != nil {
+			log.Fatalln("masuk2")
+
 			log.Fatal(err)
 			return nil, err
 		}
 		histories = append(histories, h)
 	}
 	if err := rows.Err(); err != nil {
+		log.Fatalln("masuk3")
+
 		log.Fatal(err)
 		return nil, err
 	}

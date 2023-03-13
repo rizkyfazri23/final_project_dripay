@@ -9,6 +9,7 @@ type RepoManager interface {
 	DepositRepo() repository.DepositRepository
 	TransferRepo() repository.TransferRepository
 	SplitRepo() repository.SplitRepository
+	PaymentRepo() repository.PaymentRepository
 }
 
 type repositoryManager struct {
@@ -37,6 +38,10 @@ func (r *repositoryManager) TransferRepo() repository.TransferRepository {
 
 func (r *repositoryManager) SplitRepo() repository.SplitRepository {
 	return repository.NewSplitRepository(r.infraManager.DbConn())
+}
+
+func (r *repositoryManager) PaymentRepo() repository.PaymentRepository {
+	return repository.NewPaymentRepository(r.infraManager.DbConn())
 }
 
 func NewRepoManager(manager InfraManager) RepoManager {

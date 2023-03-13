@@ -9,6 +9,6 @@ type History struct {
 	Kredit           float32   `json:"kredit"`
 	Debit            float32   `json:"debit"`
 	Date_Time        time.Time `json:"date_time"`
-	Status           int       `json:"status"`
+	Status           string    `json:"status"`
 	Transaction_Code string    `json:"transaction_code"`
 }

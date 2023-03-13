@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -29,6 +30,7 @@ func NewHistoryController(r *gin.RouterGroup, u usecase.HistoryUsecase) *History
 	hGroup.GET("/payment", controller.GetAllPayment)
 	hGroup.GET("/deposit", controller.GetAllDeposit)
 	hGroup.GET("/transfer", controller.GetAllTransfer)
+	r.GET("/history/export", controller.ExportPDF)
 
 	return &controller
 }
@@ -36,6 +38,8 @@ func NewHistoryController(r *gin.RouterGroup, u usecase.HistoryUsecase) *History
 func (c *HistoryController) GetAll(ctx *gin.Context) {
 	id, err := utils.ExtractTokenID(ctx)
 	res, err := c.usecase.GetAll(id)
+
+	fmt.Println(res)
 	if err != nil {
 		c.Failed(ctx, http.StatusInternalServerError, "", app_error.UnknownError(""))
 		return
@@ -75,4 +79,28 @@ func (c *HistoryController) GetAllDeposit(ctx *gin.Context) {
 	}
 
 	c.Success(ctx, http.StatusOK, "", "Successfully retrieved all deposit data", res)
+}
+
+func (c *HistoryController) ExportPDF(ctx *gin.Context) {
+	id, err := utils.ExtractTokenID(ctx)
+	
+	fmt.Println(id)
+
+	histories, err := c.usecase.GetAll(id)
+	if err != nil {
+		c.Failed(ctx, http.StatusInternalServerError, "Internal Server Error", app_error.UnknownError(""))
+		return
+	}
+
+	fmt.Println(histories)
+
+	pdf, err := c.usecase.ExportPDF(histories)
+	if err != nil {
+		c.Failed(ctx, http.StatusInternalServerError, "Internal Server Error", app_error.UnknownError(""))
+		return
+	}
+
+	ctx.Header("Content-Disposition", "attachment; filename=history.pdf")
+	ctx.Header("Content-Type", "application/pdf")
+	ctx.Data(http.StatusOK, "application/pdf", pdf)
 }

@@ -1,9 +1,3 @@
-/*
- * Author : Ismail Ash Shidiq (https://eulbyvan.netlify.app)
- * Created on : Sat Mar 04 2023 9:48:39 PM
- * Copyright : Ismail Ash Shidiq © 2023. All rights reserved
- */
-
 package manager
 
 import (

@@ -9,6 +9,7 @@ type UsecaseManager interface {
 	DepositUsecase() usecase.DepositUsecase
 	HistoryUsecase() usecase.HistoryUsecase
 	SplitUsecase() usecase.SplitUsecase
+	PaymentUsecase() usecase.PaymentUsecase
 }
 
 type usecaseManager struct {
@@ -39,6 +40,9 @@ func (u *usecaseManager) SplitUsecase() usecase.SplitUsecase {
 	return usecase.NewSplitUsecase(u.repoManager.SplitRepo())
 }
 
+func (u *usecaseManager) PaymentUsecase() usecase.PaymentUsecase {
+	return usecase.NewPaymentUsecase(u.repoManager.PaymentRepo())
+}
 func NewUsecaseManager(rm RepoManager) UsecaseManager {
 	return &usecaseManager{
 		repoManager: rm,
