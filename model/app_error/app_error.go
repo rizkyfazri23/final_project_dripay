@@ -18,12 +18,12 @@ func InvalidError(msg string) error {
 	if msg == "" {
 		return &AppError{
 			ErrorMessage: "invalid input",
-			ErrorType: http.StatusBadRequest,
+			ErrorType:    http.StatusBadRequest,
 		}
 	} else {
 		return &AppError{
 			ErrorMessage: msg,
-			ErrorType: http.StatusBadRequest,
+			ErrorType:    http.StatusBadRequest,
 		}
 	}
 }
@@ -32,12 +32,12 @@ func UnauthorizedError(msg string) error {
 	if msg == "" {
 		return &AppError{
 			ErrorMessage: "unauthorized user",
-			ErrorType: http.StatusUnauthorized,
+			ErrorType:    http.StatusUnauthorized,
 		}
 	} else {
 		return &AppError{
 			ErrorMessage: msg,
-			ErrorType: http.StatusUnauthorized,
+			ErrorType:    http.StatusUnauthorized,
 		}
 	}
 }

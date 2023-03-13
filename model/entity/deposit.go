@@ -13,7 +13,6 @@ type Deposit struct {
 }
 
 type DepositRequest struct {
-	Member_Username string  `json:"member_username"`
 	Deposit_Amount  float32 `json:"deposit_amount"`
 	Deposit_Gateway string  `json:"deposit_gateway"`
 	Description     string  `json:"description"`

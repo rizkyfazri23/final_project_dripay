@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/rizkyfazri23/dripay/delivery"
 	_ "github.com/lib/pq"
+	"github.com/rizkyfazri23/dripay/delivery"
 )
 
 func main() {
