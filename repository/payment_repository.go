@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"math/rand"
 	"time"
 
@@ -12,7 +13,7 @@ type PaymentRepository interface {
 	CreatePayment(payment *entity.PaymentRequest, member_id int) (*entity.Payment, error)
 	GetPayment(paymentId int) (*entity.Payment, error)
 	GetAllPayment() ([]*entity.Payment, error)
-	UpdatePayment(status string, paymentId int) (*entity.Payment, error)
+	UpdatePayment(paymentId, member_id int) (*entity.Payment, error)
 }
 
 type paymentRepository struct {
@@ -54,7 +55,7 @@ func (p *paymentRepository) CreatePayment(payment *entity.PaymentRequest, member
 		}
 	}()
 
-	var paymentGatewayId, payment_id int
+	var paymentGatewayId, payment_id, transactionID int
 	var paymentTime time.Time
 	var status string
 	paymentCode := p.randomString(10)
@@ -66,6 +67,17 @@ func (p *paymentRepository) CreatePayment(payment *entity.PaymentRequest, member
 
 	query := "INSERT INTO t_payment (payment_code, member_id, payment_amount, payment_gateway_id, description, status, date_time) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING payment_id, status"
 	err = tx.QueryRow(query, paymentCode, member_id, payment.Payment_Amount, paymentGatewayId, payment.Description, "menunggu pembayaran", paymentTime).Scan(&payment_id, &status)
+	if err != nil {
+		return &entity.Payment{}, err
+	}
+
+	err = tx.QueryRow(`SELECT type_id FROM m_transaction_type WHERE type_name = $1`, "Payment").Scan(&transactionID)
+	if err != nil {
+		return &entity.Payment{}, err
+	}
+
+	query = `INSERT INTO t_transaction_log (member_id, type_id, amount, status, transaction_code) VALUES ($1, $2, $3, $4, $5)`
+	_, err = tx.Exec(query, member_id, transactionID, payment.Payment_Amount, 0, transactionID)
 	if err != nil {
 		return &entity.Payment{}, err
 	}
@@ -113,15 +125,61 @@ func (p *paymentRepository) GetAllPayment() ([]*entity.Payment, error) {
 	return payments, nil
 }
 
-func (p *paymentRepository) UpdatePayment(status string, paymentId int) (*entity.Payment, error) {
-	_, err := p.db.Exec(`UPDATE t_payment SET status = $1 WHERE payment_id = $2`, status, paymentId)
+func (p *paymentRepository) UpdatePayment(paymentId, member_id int) (*entity.Payment, error) {
+	tx, err := p.db.Begin()
 	if err != nil {
 		return &entity.Payment{}, err
 	}
 
-	payment, err := p.GetPayment(paymentId)
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		} else {
+			err = tx.Commit()
+			if err != nil {
+				tx.Rollback()
+				return
+			}
+		}
+	}()
+
+	var walletAmount, paymentAmount, transactionID float64
+
+	err = tx.QueryRow(`SELECT wallet_amount FROM m_member WHERE member_id = $1`, member_id).Scan(&walletAmount)
 	if err != nil {
 		return &entity.Payment{}, err
 	}
-	return payment, nil
+	err = tx.QueryRow(`SELECT payment_amount FROM t_payment WHERE payment_id = $1`, paymentId).Scan(&paymentAmount)
+	if err != nil {
+		return &entity.Payment{}, err
+	}
+	if walletAmount >= paymentAmount {
+		_, err := p.db.Exec(`UPDATE t_payment SET status = 'PAID' WHERE payment_id = $1`, paymentId)
+		if err != nil {
+			return &entity.Payment{}, err
+		}
+		walletTotal := walletAmount - paymentAmount
+		_, err = p.db.Exec("UPDATE m_member SET wallet_amount = $1 WHERE member_id = $2", walletTotal, member_id)
+		if err != nil {
+			return &entity.Payment{}, err
+		}
+		err = tx.QueryRow(`SELECT type_id FROM m_transaction_type WHERE type_name = $1`, "Payment").Scan(&transactionID)
+		if err != nil {
+			return &entity.Payment{}, err
+		}
+
+		query := `INSERT INTO t_transaction_log (member_id, type_id, amount, status, transaction_code) VALUES ($1, $2, $3, $4, $5)`
+		_, err = tx.Exec(query, member_id, transactionID, walletTotal, 1, transactionID)
+		if err != nil {
+			return &entity.Payment{}, err
+		}
+
+		payment, err := p.GetPayment(paymentId)
+		if err != nil {
+			return &entity.Payment{}, err
+		}
+		return payment, nil
+	}
+	return &entity.Payment{}, errors.New("saldo tidak mencukupi")
 }

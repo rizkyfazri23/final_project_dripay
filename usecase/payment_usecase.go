@@ -9,7 +9,7 @@ type PaymentUsecase interface {
 	CreatePayment(payment *entity.PaymentRequest, member_id int) (*entity.Payment, error)
 	GetPayment(paymentId int) (*entity.Payment, error)
 	GetAllPayment() ([]*entity.Payment, error)
-	UpdatePayment(status string, paymentId int) (*entity.Payment, error)
+	UpdatePayment(paymentId, member_id int) (*entity.Payment, error)
 }
 
 type paymentUsecase struct {
@@ -34,6 +34,6 @@ func (u *paymentUsecase) GetAllPayment() ([]*entity.Payment, error) {
 	return u.paymentRepo.GetAllPayment()
 }
 
-func (u *paymentUsecase) UpdatePayment(status string, paymentId int) (*entity.Payment, error) {
-	return u.paymentRepo.UpdatePayment(status, paymentId)
+func (u *paymentUsecase) UpdatePayment(paymentId, member_id int) (*entity.Payment, error) {
+	return u.paymentRepo.UpdatePayment(paymentId, member_id)
 }

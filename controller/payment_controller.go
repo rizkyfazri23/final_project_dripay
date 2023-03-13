@@ -47,6 +47,7 @@ func (c *PaymentController) Create(ctx *gin.Context) {
 		c.Failed(ctx, http.StatusUnauthorized, "", fmt.Errorf("failed to extract token"))
 		return
 	}
+
 	res, err := c.usecase.CreatePayment(&payment, member_id)
 	fmt.Println(err)
 	if err != nil {
@@ -85,13 +86,17 @@ func (c *PaymentController) Update(ctx *gin.Context) {
 	}
 
 	if err := ctx.BindJSON(&paymentStatus); err != nil {
-		fmt.Println("err")
 		c.Failed(ctx, http.StatusBadRequest, "", app_error.DataNotFoundError(""))
 		return
 	}
-
-	res, err := c.usecase.UpdatePayment(paymentStatus.Status, paymentId)
+	member_id, err := utils.ExtractTokenID(ctx)
 	if err != nil {
+		c.Failed(ctx, http.StatusUnauthorized, "", fmt.Errorf("failed to extract token"))
+		return
+	}
+	res, err := c.usecase.UpdatePayment(paymentId, member_id)
+	if err != nil {
+		fmt.Print(err)
 		c.Failed(ctx, http.StatusInternalServerError, "", fmt.Errorf("failed to update payment"))
 		return
 	}
