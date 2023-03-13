@@ -34,7 +34,7 @@ func NewTransferController(r *gin.RouterGroup, u usecase.TransferUsecase) *Trans
 
 func (c *TransferController) AddTransfer(ctx *gin.Context) {
 	var newTransfer *entity.TransferInfo
-	sender_Id, _ := utils.ExtractTokenID(ctx)
+	sender_Id, err := utils.ExtractTokenID(ctx)
 	if err := ctx.BindJSON(&newTransfer); err != nil {
 		c.Failed(ctx, http.StatusBadRequest, "", app_error.UnknownError(""))
 		return

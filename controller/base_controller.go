@@ -1,3 +1,9 @@
+/*
+ * Author : Ismail Ash Shidiq (https://eulbyvan.netlify.app)
+ * Created on : Sat Mar 04 2023 10:08:36 PM
+ * Copyright : Ismail Ash Shidiq © 2023. All rights reserved
+ */
+
 package controller
 
 import (
@@ -7,7 +13,7 @@ import (
 
 type BaseController struct{}
 
-func (b *BaseController) Success(c *gin.Context, httpCode int, code string, msg string, data interface{}) {
+func (b *BaseController) Success(c *gin.Context, httpCode int, code string, msg string, data any) {
 	res.NewSuccessJsonResponse(c, httpCode, code, msg, data).Send()
 }
 

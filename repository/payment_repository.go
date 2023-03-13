@@ -65,7 +65,7 @@ func (p *paymentRepository) CreatePayment(payment *entity.PaymentRequest, member
 	}
 
 	query := "INSERT INTO t_payment (payment_code, member_id, payment_amount, payment_gateway_id, description, status, date_time) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING payment_id, status"
-	err = tx.QueryRow(query, paymentCode, member_id, payment.Payment_Amount, paymentGatewayId, payment.Description, "menunggu pembayaran", paymentTime).Scan(&payment_id, &status)
+	err = tx.QueryRow(query, paymentCode, member_id, payment.Payment_Amount, paymentGatewayId, payment.Description, "UNPAID", paymentTime).Scan(&payment_id, &status)
 	if err != nil {
 		return &entity.Payment{}, err
 	}

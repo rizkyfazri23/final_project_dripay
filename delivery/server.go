@@ -24,7 +24,6 @@ func (p *AppServer) v1() {
 	p.depositController(v1Routes)
 	p.historyController(v1Routes)
 	p.splitController(v1Routes)
-	p.paymentController(v1Routes)
 }
 
 func (p *AppServer) gatewayController(rg *gin.RouterGroup) {
@@ -49,10 +48,6 @@ func (p *AppServer) historyController(rg *gin.RouterGroup) {
 
 func (p *AppServer) splitController(rg *gin.RouterGroup) {
 	controller.NewSplitController(rg, p.usecaseManager.SplitUsecase())
-}
-
-func (p *AppServer) paymentController(rg *gin.RouterGroup) {
-	controller.NewPaymentController(rg, p.usecaseManager.PaymentUsecase())
 }
 
 func (p *AppServer) Run() {

@@ -45,7 +45,7 @@ func (c *DepositController) Add(ctx *gin.Context) {
 	// 	return
 	// }
 
-	member_id, _ := utils.ExtractTokenID(ctx)
+	member_id, err := utils.ExtractTokenID(ctx)
 
 	res, err := c.usecase.Add(deposit, member_id)
 
