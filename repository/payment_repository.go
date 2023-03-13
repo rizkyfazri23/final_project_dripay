@@ -26,11 +26,13 @@ func NewPaymentRepository(db *sql.DB) PaymentRepository {
 }
 
 func (p *paymentRepository) randomString(length int) string {
-	rand.Seed(time.Now().UnixNano())
+	seed := time.Now().UnixNano()
+	rng := rand.New(rand.NewSource(seed))
+
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	var str string
 	for i := 0; i < length; i++ {
-		str += string(charset[rand.Intn(len(charset))])
+		str += string(charset[rng.Intn(len(charset))])
 	}
 	return str
 }
