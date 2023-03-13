@@ -16,6 +16,5 @@ type Transfer struct {
 type TransferInfo struct {
 	ReceiptUsername string  `json:"receipt_username"`
 	TransferAmount  float32 `json:"transfer_amount"`
-	PaymentGateway  string  `json:"payment_gateway"`
 	Description     string  `json:"Description"`
 }

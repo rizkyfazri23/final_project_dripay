@@ -92,8 +92,8 @@ func (r *transferRepository) CreateTransfer(newTransfer *entity.TransferInfo, se
 	}
 
 	var gatewayId string
-	query = "SELECT gateway_id FROM m_gateway WHERE gateway_name = $1"
-	err = tx.QueryRow(query, newTransfer.PaymentGateway).Scan(&gatewayId)
+	query = "SELECT gateway_id FROM m_gateway WHERE gateway_name = 'DRIPAY'"
+	err = tx.QueryRow(query).Scan(&gatewayId)
 	if err != nil {
 		tx.Rollback()
 		log.Println(err)
