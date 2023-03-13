@@ -22,8 +22,8 @@ type paymentTypeRepo struct {
 
 func (r *paymentTypeRepo) CreateType(newType *entity.TransactionTypeInput) (entity.TransactionType, error) {
 	var typeOutput entity.TransactionType
-	query := "INSERT INTO m_transaction_type(type_name, description) VALUES($1, $2) RETURNING type_id, type_name, description"
-	err := r.db.QueryRow(query, newType.TypeName, newType.Description).Scan(&typeOutput.TypeId, &typeOutput.TypeName, &typeOutput.Description)
+	query := "INSERT INTO m_transaction_type(type_name) VALUES($1) RETURNING type_id, type_name"
+	err := r.db.QueryRow(query, newType.TypeName).Scan(&typeOutput.TypeId, &typeOutput.TypeName)
 	if err != nil {
 		return entity.TransactionType{}, err
 	}
@@ -32,7 +32,7 @@ func (r *paymentTypeRepo) CreateType(newType *entity.TransactionTypeInput) (enti
 
 func (r *paymentTypeRepo) ReadAllType() ([]entity.TransactionType, error) {
 	var transactionTypeList []entity.TransactionType
-	query := "SELECT type_id, type_name, desription FROM m_transaction_type"
+	query := "SELECT type_id, type_name FROM m_transaction_type"
 	rows, err := r.db.Query(query)
 	if err != nil {
 		log.Println(err)
@@ -42,7 +42,7 @@ func (r *paymentTypeRepo) ReadAllType() ([]entity.TransactionType, error) {
 
 	for rows.Next() {
 		var transactionType entity.TransactionType
-		if err = rows.Scan(&transactionType.TypeId, &transactionType.TypeName, &transactionType.Description); err != nil {
+		if err = rows.Scan(&transactionType.TypeId, &transactionType.TypeName); err != nil {
 			log.Println(err)
 
 			return nil, err
@@ -59,9 +59,9 @@ func (r *paymentTypeRepo) ReadAllType() ([]entity.TransactionType, error) {
 
 func (r *paymentTypeRepo) ReadTypeById(typeID int) (entity.TransactionType, error) {
 	var getType entity.TransactionType
-	query := "SELECT type_id, type_name, desription FROM m_transaction_type WHERE type_id = $1 RETURNING type_id, type_name, desription"
+	query := "SELECT type_id, type_name FROM m_transaction_type WHERE type_id = $1"
 	row := r.db.QueryRow(query, typeID)
-	err := row.Scan(&getType.TypeId, &getType.TypeName, &getType.Description)
+	err := row.Scan(&getType.TypeId, &getType.TypeName)
 	if err == sql.ErrNoRows {
 		log.Println(err)
 		return entity.TransactionType{}, fmt.Errorf("unidentified transaction type")
@@ -73,9 +73,9 @@ func (r *paymentTypeRepo) ReadTypeById(typeID int) (entity.TransactionType, erro
 
 func (r *paymentTypeRepo) UpdateType(typeID int, typeEdit *entity.TransactionTypeInput) (entity.TransactionType, error) {
 	var typeInformation entity.TransactionType
-	query := "UPDATE m_transaction_type SET type_name = $1, description = &2 WHERE type_id = $3 "
-	row := r.db.QueryRow(query, typeEdit.TypeName, typeEdit.Description, typeID)
-	err := row.Scan(&typeInformation.TypeId, &typeInformation.TypeName, &typeInformation.Description)
+	query := "UPDATE m_transaction_type SET type_name = $1 WHERE type_id = $2 RETURNING type_id, type_name"
+	row := r.db.QueryRow(query, typeEdit.TypeName, typeID)
+	err := row.Scan(&typeInformation.TypeId, &typeInformation.TypeName)
 	if err != nil {
 		log.Println(err)
 		return entity.TransactionType{}, err
@@ -84,7 +84,7 @@ func (r *paymentTypeRepo) UpdateType(typeID int, typeEdit *entity.TransactionTyp
 }
 
 func (r *paymentTypeRepo) DeleteType(typeID int) error {
-	query := "DELETE FROM n_transaction_type WHERE type_id = $1"
+	query := "DELETE FROM m_transaction_type WHERE type_id = $1"
 	result, err := r.db.Exec(query, typeID)
 	if err != nil {
 		log.Println(err)
@@ -102,7 +102,7 @@ func (r *paymentTypeRepo) DeleteType(typeID int) error {
 	return nil
 }
 
-func newTransactionTypeRepo(db *sql.DB) PaymentTypeRepo {
+func NewTransactionTypeRepo(db *sql.DB) PaymentTypeRepo {
 	repo := new(paymentTypeRepo)
 	repo.db = db
 	return repo

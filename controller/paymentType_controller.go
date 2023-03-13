@@ -27,8 +27,8 @@ func NewTransactionTypeController(r *gin.RouterGroup, u usecase.PaymentTypeUseca
 	TrTypGroup.POST("/", controller.AddType)
 	TrTypGroup.GET("/", controller.GetAll)
 	TrTypGroup.GET("/:id", controller.GetOne)
-	TrTypGroup.PUT("/edit/:id", controller.Edit)
-	TrTypGroup.DELETE("/delete/:id", controller.Remove)
+	TrTypGroup.PUT("/:id", controller.Edit)
+	TrTypGroup.DELETE("/:id", controller.Remove)
 	return &controller
 }
 

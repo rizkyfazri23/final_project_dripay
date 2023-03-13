@@ -33,7 +33,7 @@ func (u *paymentTypeUsecase) Remove(typeID int) error {
 	return u.typeRepo.DeleteType(typeID)
 }
 
-func newPaymentTypeUsecase(typesRepo repository.PaymentTypeRepo) PaymentTypeUsecase {
+func NewPaymentTypeUsecase(typesRepo repository.PaymentTypeRepo) PaymentTypeUsecase {
 	return &paymentTypeUsecase{
 		typeRepo: typesRepo,
 	}
