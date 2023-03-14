@@ -90,6 +90,10 @@ func (c *GatewayController) Edit(ctx *gin.Context) {
 		c.Failed(ctx, http.StatusBadRequest, "", app_error.InvalidError("invalid request body"))
 		return
 	}
+	if gateway.Gateway_Name == "" {
+		c.Failed(ctx, http.StatusBadRequest, "", app_error.InvalidError("Name cannot be empty"))
+		return
+	}
 
 	res, err := c.usecase.Edit(&gateway)
 	if err != nil {

@@ -78,8 +78,14 @@ func (r *gatewayRepo) Create(newGateway *entity.Gateway) (entity.Gateway, error)
 }
 
 func (r *gatewayRepo) Update(gateway *entity.Gateway) (entity.Gateway, error) {
+	var status int
+	if gateway.Status {
+		status = 1
+	} else {
+		status = 0
+	}
 	query := "UPDATE m_gateway SET gateway_name = $1, status = $2 WHERE gateway_id = $3 RETURNING gateway_id, gateway_name, status"
-	row := r.db.QueryRow(query, gateway.Gateway_Name, gateway.Status, gateway.Gateway_Id)
+	row := r.db.QueryRow(query, gateway.Gateway_Name, status, gateway.Gateway_Id)
 
 	var updatedGateway entity.Gateway
 	err := row.Scan(&updatedGateway.Gateway_Id, &updatedGateway.Gateway_Name, &updatedGateway.Status)

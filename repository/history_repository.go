@@ -154,17 +154,24 @@ func (r *historyRepository) TransferHistory(memberID int) ([]entity.History, err
 func (r *historyRepository) DepositHistory(memberID int) ([]entity.History, error) {
 
 	query := (`	
-			SELECT 			id,
-							member_username, 
-							transaction_type, 
-							kredit,
-							date_time,
-							status, 
-							transaction_code 
-			FROM 			transaction_history
-			WHERE			member_id = $1 AND transaction_type = 'Deposit'
-			ORDER BY		date_time desc;`)
-	rows, err := r.db.Query(query, memberID)
+	SELECT t.transaction_log_id AS id,
+    m.username AS member_username,
+    ty.type_name AS transaction_type,
+        CASE
+            WHEN t.status = 1 THEN t.amount
+            ELSE 0::numeric
+        END AS kredit,
+    t.date_time,
+        CASE
+            WHEN t.status = 0 THEN 'TRANSFER SUCCESS'::text
+            WHEN t.status = 1 THEN 'DEPOSIT SUCCESS'::text
+            ELSE NULL::text
+        END AS status,
+    t.transaction_code
+   FROM t_transaction_log t
+     JOIN m_transaction_type ty ON t.type_id = ty.type_id
+     JOIN m_member m ON t.member_id = m.member_id;`)
+	rows, err := r.db.Query(query)
 
 	if err != nil {
 		log.Fatalln(err)

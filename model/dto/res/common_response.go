@@ -22,10 +22,10 @@ type AppHttpResponse interface {
 }
 
 type ApiResponse struct {
-	Code    string `json:"code"`
-	Status  string `json:"status"`
-	Message string `json:"message"`
-	Data    any    `json:"data,omitempty"`
+	Code    string      `json:"code"`
+	Status  string      `json:"status"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
 }
 
 func NewSuccessMessage(httpCode int, code string, msg string, data interface{}) (httpStatusCode int, apiResponse ApiResponse) {
