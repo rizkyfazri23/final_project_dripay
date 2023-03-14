@@ -14,10 +14,9 @@ type Payment struct {
 }
 
 type PaymentRequest struct {
-	Username        string  `json:"member_username"`
-	Payment_Amount  float32 `json:"payment_amount"`
-	Payment_Gateway string  `json:"payment_gateway"`
-	Description     string  `json:"description"`
+	Username       string  `json:"member_username"`
+	Payment_Amount float32 `json:"payment_amount"`
+	Description    string  `json:"description"`
 }
 
 type PaymentRequestStatus struct {

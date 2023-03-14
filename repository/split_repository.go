@@ -20,9 +20,25 @@ type splitRepository struct {
 func (s *splitRepository) SplitBill(newSplit *entity.SplitRequest, member_id int) ([]entity.SplitResponse, error) {
 	var response []entity.SplitResponse
 	var memberUsername string
+	var splitID int
+	var gatewayID int
 
 	tx, err := s.db.Begin()
 	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	err = tx.QueryRow(`SELECT type_id FROM m_transaction_type WHERE type_name = 'Split Bill'`).Scan(&splitID)
+	if err != nil {
+		tx.Rollback()
+		log.Println(err)
+		return nil, err
+	}
+
+	err = tx.QueryRow(`SELECT gateway_id FROM m_gateway WHERE gateway_name = 'Dripay'`).Scan(&gatewayID)
+	if err != nil {
+		tx.Rollback()
 		log.Println(err)
 		return nil, err
 	}
@@ -32,6 +48,7 @@ func (s *splitRepository) SplitBill(newSplit *entity.SplitRequest, member_id int
 
 	err = tx.QueryRow(`SELECT username FROM m_member WHERE member_id = $1`, member_id).Scan(&memberUsername)
 	if err != nil {
+		tx.Rollback()
 		log.Println(err)
 		return nil, err
 	}
@@ -44,7 +61,7 @@ func (s *splitRepository) SplitBill(newSplit *entity.SplitRequest, member_id int
 
 	for _, member := range newSplit.Member_List {
 		var memberID, paymentID int
-		var paymentCode string
+		var transactionCode string
 		var paymentTime time.Time
 		var walletAmount float32
 
@@ -61,7 +78,14 @@ func (s *splitRepository) SplitBill(newSplit *entity.SplitRequest, member_id int
 			return []entity.SplitResponse{}, err
 		}
 
-		err = tx.QueryRow("INSERT INTO t_payment (member_id, payment_amount, payment_gateway_id, description, status) VALUES ($1, $2, $3, $4, $5) RETURNING payment_id, payment_code, date_time", memberID, paymentAmount, 1, newSplit.Description, "Success").Scan(&paymentID, &paymentCode, &paymentTime)
+		err = tx.QueryRow("INSERT INTO t_transaction_log (member_id, amount, type_id) VALUES ($1, $2, $3) RETURNING transaction_code", memberID, paymentAmount, splitID).Scan(&transactionCode)
+		if err != nil {
+			log.Println(err)
+			tx.Rollback()
+			return []entity.SplitResponse{}, err
+		}
+
+		err = tx.QueryRow("INSERT INTO t_payment (member_id, payment_amount, payment_gateway_id, description, status) VALUES ($1, $2, $3, $4, $5) RETURNING payment_id, date_time", memberID, paymentAmount, gatewayID, newSplit.Description, "Success").Scan(&paymentID, &paymentTime)
 		if err != nil {
 			log.Println(err)
 			tx.Rollback()
@@ -74,15 +98,8 @@ func (s *splitRepository) SplitBill(newSplit *entity.SplitRequest, member_id int
 			return []entity.SplitResponse{}, err
 		}
 
-		_, err = tx.Exec("INSERT INTO t_transaction_log (member_id, amount, type_id, transaction_code) VALUES ($1, $2, $3, $4)", memberID, paymentAmount, 1, paymentCode)
-		if err != nil {
-			log.Println(err)
-			tx.Rollback()
-			return []entity.SplitResponse{}, err
-		}
-
 		response = append(response, entity.SplitResponse{
-			Payment_Code:    paymentCode,
+			Payment_Code:    transactionCode,
 			Member_Username: member.Member_Username,
 			Payment_Amount:  paymentAmount,
 			Payment_Gateway: "Dripay",

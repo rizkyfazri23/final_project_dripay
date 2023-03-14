@@ -62,7 +62,7 @@ func (p *paymentRepository) CreatePayment(payment *entity.PaymentRequest, member
 	var status string
 	paymentCode := p.randomString(10)
 
-	err = tx.QueryRow(`SELECT gateway_id FROM m_gateway WHERE gateway_name = $1`, payment.Payment_Gateway).Scan(&paymentGatewayId)
+	err = tx.QueryRow(`SELECT gateway_id FROM m_gateway WHERE gateway_name = $1`, "DRIPAY").Scan(&paymentGatewayId)
 	if err != nil {
 		return &entity.Payment{}, err
 	}
