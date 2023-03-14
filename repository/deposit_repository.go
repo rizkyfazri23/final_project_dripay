@@ -38,7 +38,7 @@ func (d *depositRepository) MakeDeposit(newDeposit *entity.DepositRequest, membe
 	var transactionCode string
 	var dateTime time.Time
 
-	err = tx.QueryRow(`SELECT gateway_id FROM m_gateway WHERE gateway_name = $1`, newDeposit.Deposit_Gateway).Scan(&depositGatewayID)
+	err = tx.QueryRow(`SELECT gateway_id FROM m_gateway WHERE gateway_name = $1`, "DRIPAY").Scan(&depositGatewayID)
 	if err != nil {
 		return entity.Deposit{}, err
 	}
