@@ -36,7 +36,7 @@ func (s *splitRepository) SplitBill(newSplit *entity.SplitRequest, member_id int
 		return nil, err
 	}
 
-	err = tx.QueryRow(`SELECT gateway_id FROM m_gateway WHERE gateway_name = 'Dripay'`).Scan(&gatewayID)
+	err = tx.QueryRow(`SELECT gateway_id FROM m_gateway WHERE gateway_name = 'DRIPAY'`).Scan(&gatewayID)
 	if err != nil {
 		tx.Rollback()
 		log.Println(err)
@@ -102,7 +102,7 @@ func (s *splitRepository) SplitBill(newSplit *entity.SplitRequest, member_id int
 			Payment_Code:    transactionCode,
 			Member_Username: member.Member_Username,
 			Payment_Amount:  paymentAmount,
-			Payment_Gateway: "Dripay",
+			Payment_Gateway: "DRIPAY",
 			Description:     newSplit.Description,
 			Status:          "Success",
 		})
