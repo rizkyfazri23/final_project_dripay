@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"errors"
-	"math/rand"
 	"time"
 
 	"github.com/rizkyfazri23/dripay/model/entity"
@@ -24,18 +23,6 @@ func NewPaymentRepository(db *sql.DB) PaymentRepository {
 	return &paymentRepository{
 		db: db,
 	}
-}
-
-func (p *paymentRepository) randomString(length int) string {
-	seed := time.Now().UnixNano()
-	rng := rand.New(rand.NewSource(seed))
-
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	var str string
-	for i := 0; i < length; i++ {
-		str += string(charset[rng.Intn(len(charset))])
-	}
-	return str
 }
 
 func (p *paymentRepository) CreatePayment(payment *entity.PaymentRequest, member_id int) (*entity.Payment, error) {
@@ -60,15 +47,15 @@ func (p *paymentRepository) CreatePayment(payment *entity.PaymentRequest, member
 	var paymentGatewayId, payment_id, transactionID int
 	var paymentTime time.Time
 	var status string
-	paymentCode := p.randomString(10)
+	var paymentCode string
 
 	err = tx.QueryRow(`SELECT gateway_id FROM m_gateway WHERE gateway_name = $1`, "DRIPAY").Scan(&paymentGatewayId)
 	if err != nil {
 		return &entity.Payment{}, err
 	}
 
-	query := "INSERT INTO t_payment (payment_code, member_id, payment_amount, payment_gateway_id, description, status, date_time) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING payment_id, status"
-	err = tx.QueryRow(query, paymentCode, member_id, payment.Payment_Amount, paymentGatewayId, payment.Description, "UNPAID", paymentTime).Scan(&payment_id, &status)
+	query := "INSERT INTO t_payment (member_id, payment_amount, payment_gateway_id, description, status, date_time) VALUES ($1, $2, $3, $4, $5, $6) RETURNING payment_id, payment_code, status"
+	err = tx.QueryRow(query, member_id, payment.Payment_Amount, paymentGatewayId, payment.Description, "UNPAID", paymentTime).Scan(&payment_id, &status, &paymentCode)
 	if err != nil {
 		return &entity.Payment{}, err
 	}
